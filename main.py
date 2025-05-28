@@ -9,7 +9,13 @@ app = Flask(__name__)
 # 使用环境变量设置密钥，生产环境更安全
 app.secret_key = os.environ.get('SECRET_KEY', 'your_very_secret_key_for_session_management')
 
-DATABASE = 'database.db'
+# 数据库配置 - 适配生产环境
+if os.environ.get('RENDER') or os.environ.get('RAILWAY_ENVIRONMENT'):
+    # 生产环境使用tmp目录下的数据库
+    DATABASE = '/tmp/database.db'
+else:
+    # 开发环境使用本地文件
+    DATABASE = 'database.db'
 
 # 获取端口配置，适配云平台部署
 PORT = int(os.environ.get('PORT', 5000))
@@ -530,23 +536,30 @@ def api_logout():
     return jsonify({'message': '登出成功！', 'redirect_url': url_for('login_page')}), 200
 
 if __name__ == '__main__':
-    original_init_db_exists = 'init_db' in globals() 
-    if original_init_db_exists:
-        # 确保数据库和users表存在
-        if not os.path.exists(DATABASE):
-            init_db() # 这会创建所有表，包括我们暂时不用的
-        else:
-            conn = get_db_connection()
-            cur = conn.cursor()
-            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users';")
-            if cur.fetchone() is None:
-                conn.close() 
-                init_db() 
-            else:
-                conn.close()
-                print("数据库和 users 表已确认存在。")
+    # 生产环境数据库初始化
+    if os.environ.get('RENDER') or os.environ.get('RAILWAY_ENVIRONMENT'):
+        # 在生产环境中，每次启动都初始化数据库（因为使用临时存储）
+        init_db()
+        print(f"生产环境数据库初始化完成: {DATABASE}")
     else:
-        print("警告: init_db 函数未定义。")
+        # 开发环境的现有逻辑
+        original_init_db_exists = 'init_db' in globals() 
+        if original_init_db_exists:
+            # 确保数据库和users表存在
+            if not os.path.exists(DATABASE):
+                init_db() # 这会创建所有表，包括我们暂时不用的
+            else:
+                conn = get_db_connection()
+                cur = conn.cursor()
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users';")
+                if cur.fetchone() is None:
+                    conn.close() 
+                    init_db() 
+                else:
+                    conn.close()
+                    print("数据库和 users 表已确认存在。")
+        else:
+            print("警告: init_db 函数未定义。")
         
     # 生产环境配置
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
