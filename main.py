@@ -3,6 +3,11 @@ from werkzeug.security import generate_password_hash, check_password_hash # 导�
 import sqlite3
 import os
 import json
+import logging
+
+# 配置日志
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -294,7 +299,7 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "14_m13", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 13, "question": "13.贯彻依法治军战略，要紧紧围绕党在新时代的强军目标,着眼全面加强革命化现代化正规化建设，坚持（    ）。", "options": {"A":"党对人民军队的绝对领导", "B":"建设中国特色军事法治体系", "C":"从严治军铁律", "D":"抓住领导干部这个“关键少数”", "E":"按照法治要求转变治军方式"}, "answer": "ABCDE"}, # [cite: 21]
     {"id": "14_m14", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 14, "question": "14. 提高军队战斗力，要（    ）。", "options": {"A":"强化战斗队思想，立起练兵备战鲜明导向", "B":"做到全部精力向打仗聚焦", "C":"坚决破除“和平积弊”，把战斗力标准贯彻到全军各项建设中", "D":"坚持用是否有利于提高战斗力来衡量和检验各项工作"}, "answer": "ABCD"}, # [cite: 21]
     {"id": "14_m15", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 15, "question": "15. 对“强国必须强军，军强才能国安”的正确理解是（ ）。", "options": {"A":"国无防不立，民无兵不安。没有一支强大的军队，就不可能有强大的祖国", "B":"中国越发展壮大，遇到的阻力和压力就会越大，面临的风险就会越多", "C":"面对严峻复杂的国家安全形势，必须对战争危险保持清醒头脑。", "D":"能战方能止战，要实现中华民族伟大复兴，就必须把军队搞得更强大"}, "answer": "ABCD"}, # [cite: 21]
-    {"id": "14_m16", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 16, "question": "16. 之所以必须坚持党对人民军队的绝对领导，是因为（  ）。", "options": {"A":"坚持党对人民军队的绝对领导，是马克思主义建党建军的一条基本原则", "B":"党对人民军队的绝对领导，是建军之本、强军之魂", "C":"人民军队是党缔造的，始终在党的领导下行动和战斗", "D":"党的绝对领导，造就了人民军队对党的赤胆忠心、为党和人民冲锋陷阵的坚定意志", "E":"坚定不移听党话、跟党走，是人民军队永葆人民军队性质、本色的根本保证"}, "answer": "ABCDE"}, # [cite: 21]
+    {"id": "14_m16", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 16, "question": "16. 之所以必须坚持党对人民军队的绝对领导，是因为（ ）。", "options": {"A":"坚持党对人民军队的绝对领导，是马克思主义建党建军的一条基本原则", "B":"党对人民军队的绝对领导，是建军之本、强军之魂", "C":"人民军队是党缔造的，始终在党的领导下行动和战斗", "D":"党的绝对领导，造就了人民军队对党的赤胆忠心、为党和人民冲锋陷阵的坚定意志", "E":"坚定不移听党话、跟党走，是人民军队永葆人民军队性质、本色的根本保证"}, "answer": "ABCDE"}, # [cite: 21]
     {"id": "14_m17", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 17, "question": "17.武器装备远程（  ）趋势更加明显，战争形态加速向信息化战争演变，智能化战争初现端倪。。", "options": {"A":"精确化", "B":"智能化", "C":"隐身化", "D":"无人化"}, "answer": "ABCD"}, # [cite: 21]
     # Judgment (判断题) from 14.doc
     {"id": "14_j1", "type": "judgment_as_single", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 1, "question": "1.坚持党对人民军队的绝对领导是人民军队能打仗、打胜仗的军事战略指导。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 21]
@@ -323,7 +328,7 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "15_m8", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 8, "question": "8.为了全面贯彻并落实“爱国者治港”原则，党中央采取措施，完善香港特别行政区选举制度，具体表现在（   ）。", "options": {"A":"2021年3月，十三届全国人大四次会议通过《全国人民代表大会关于完善香港特别行政区选举制度的决定》", "B":"2021年,十三届人大常委会第二十七次会议通过新修订的《中华人民共和国香港特别行政区基本法附件一香港特别行政区行政长官的产生办法》《中华人民共和国香港特别行政区基本法附件二香港特别行政区立法会的产生办法和表决程序》。", "C":"2021年5月，香港特别行政区立法会通过《2021年完善选举制度（综合修订）条例草案》", "D":"2022年12月，十三届全国人大常委会第三十八次会议通过《关于〈中华人民共和国香港特别行政区维护国家安全法〉第十四条和第四十七条的解释》"}, "answer": "ABC"}, # [cite: 25]
     {"id": "15_m9", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 9, "question": "9.面对香港局势动荡变化，党中央审时度势，采取哪些标本兼治的举措, 推动香港局势实现由乱到治的重大转折。（  ）", "options": {"A":"建立健全香港特别行政区维护国家安全的法律制度和执行机制", "B":"完善香港特别行政区选举制度", "C":"坚持以行政长官为核心的行政主导体制", "D":"支持行政长官和特别行政区政府依法施政、积极作为"}, "answer": "ABCD"}, # [cite: 25]
     {"id": "15_m10", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 10, "question": "10.在新时代国家改革开放进程中,香港、澳门应该如何抓住发展机遇，更好融入国家发展大局。（ ）", "options": {"A":"积极主动助力国家全面开放", "B":"积极主动参与粤港澳大湾区建设", "C":"积极主动参与国家治理实践", "D":"积极主动促进国际人文交流"}, "answer": "ABCD"}, # [cite: 25]
-    {"id": "15_m11", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 11, "question": "11.解决台湾问题、实现祖国完全统一，是（  ）。", "options": {"A":"党矢志不渝的历史任务", "B":"全体中华儿女的共同愿望", "C":"实现中华民族伟大复兴的必然要求", "D":"大势所趋、大义所在、民心所向", "E":"中国核心利益的核心, 民族复兴的题中之义"}, "answer": "ABCDE"}, # [cite: 25]
+    {"id": "15_m11", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 11, "question": "11.解决台湾问题、实现祖国完全统一，是（  ）。", "options": {"A":"党矢志不渝的历史任务", "B":"全体中华儿女的共同愿望", "C":"实现中华民族伟大复兴的必然要求", "D":"大势所趋、大义所在、民心所向"}, "answer": "ABCD"}, # [cite: 25]
     {"id": "15_m12", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 12, "question": "12.（  ）是我们解决台湾问题的最大底气。", "options": {"A":"中国特色社会主义事业取得的伟大成就", "B":"我国经济、科技、国防实力的持续增强", "C":"包括台湾人民在内的全国各族人民万众一心、同仇敌忾", "D":"国际社会支持"}, "answer": "ABC"}, # [cite: 25]
     {"id": "15_m13", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 13, "question": "13.牢牢把握两岸关系主导权和主动权，要做到（  ）。", "options": {"A":"坚持“和平统一、一国两制”方针，探索“两制”台湾方案", "B":"坚定支持岛内爱国统一力量，坚定反“独”促统", "C":"促进两岸经济文化交流合作，深化两岸各领域融合发展", "D":"坚持以最大诚意、尽最大努力争取和平统一的前景，但决不承诺放弃使用武力"}, "answer": "ABCD"}, # [cite: 25]
     {"id": "15_m14", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 14, "question": "14.全面贯彻新时代党解决台湾问题的总体方略，必须(   )。", "options": {"A":"坚持党中央对对台工作的集中统一领导", "B":"坚持在中华民族伟大复兴进程中推进祖国统一", "C":"坚持在祖国大陆发展进步基础上解决台湾问题", "D":"坚持“和平统一、一国两制”基本方针", "E":"坚持一个中国原则和“九二共识”"}, "answer": "ABCDE"}, # [cite: 25]
@@ -426,14 +431,20 @@ def get_db_connection():
     return conn
 
 def init_db():
+    logger.info(f"初始化数据库: {DATABASE}")
     db_exists = os.path.exists(DATABASE)
+    logger.info(f"数据库文件存在: {db_exists}")
+    
     conn = get_db_connection()
     cursor = conn.cursor()
     
     # Always check for users table and create if not exists
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
-    if not cursor.fetchone():
-        print("users 表不存在，正在创建...")
+    table_check = cursor.fetchone()
+    logger.info(f"users表检查结果: {table_check}")
+    
+    if not table_check:
+        logger.info("users 表不存在，正在创建...")
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -441,15 +452,15 @@ def init_db():
                 password TEXT NOT NULL
             )
         ''')
-        print("users 表创建成功。")
+        logger.info("users 表创建成功。")
     else:
+        logger.info("users 表已存在。")
         if not db_exists: # This case should ideally not be hit if table exists
-             print("数据库不存在，但表以某种方式存在（异常情况）。")
-        # else: # Removed redundant print
-            # print("users 表已存在。")
+             logger.warning("数据库不存在，但表以某种方式存在（异常情况）。")
 
     conn.commit()
     conn.close()
+    logger.info("数据库初始化完成")
 
 # --- 原有的路由 ---
 @app.route('/')
@@ -500,32 +511,67 @@ def login_page():
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
     if request.method == 'POST':
+        logger.info("收到注册请求")
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
+        
+        logger.info(f"注册用户名: {username}")
 
         if not username or not password:
+            logger.warning("用户名或密码为空")
             return jsonify({'message': '用户名和密码不能为空！'}), 400
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        message = ''
-        status_code = 200
+        logger.info(f"密码已哈希: {hashed_password[:20]}...")
+        
         try:
+            conn = get_db_connection()
+            logger.info(f"数据库连接成功: {DATABASE}")
+            cursor = conn.cursor()
+            
+            # 检查数据库状态
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+            table_exists = cursor.fetchone()
+            logger.info(f"users表存在: {table_exists is not None}")
+            
+            if not table_exists:
+                logger.error("users表不存在，尝试创建")
+                cursor.execute('''
+                    CREATE TABLE users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT NOT NULL UNIQUE,
+                        password TEXT NOT NULL
+                    )
+                ''')
+                conn.commit()
+                logger.info("users表创建成功")
+            
             cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
             conn.commit()
+            logger.info(f"用户 {username} 插入成功")
+            
+            # 验证插入
+            cursor.execute("SELECT COUNT(*) FROM users WHERE username = ?", (username,))
+            count = cursor.fetchone()[0]
+            logger.info(f"验证插入，用户 {username} 数量: {count}")
+            
             message = '注册成功！请登录。'
             status_code = 201 # Created
-        except sqlite3.IntegrityError:
+            
+        except sqlite3.IntegrityError as e:
+            logger.warning(f"用户名重复: {username}, 错误: {e}")
             message = '用户名已存在！'
             status_code = 409 # Conflict
         except Exception as e:
+            logger.error(f"注册过程中发生错误: {e}")
             message = f'注册失败：{str(e)}'
             status_code = 500 # Internal Server Error
-            app.logger.error(f"Error during registration: {e}") # Use app.logger for Flask
         finally:
-            conn.close()
+            if 'conn' in locals():
+                conn.close()
+                logger.info("数据库连接已关闭")
+        
         return jsonify({'message': message}), status_code
     return render_template('register.html')
 
