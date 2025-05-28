@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择题在线练习</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* 您之前提供的CSS样式可以放在 static/style.css 文件中 */
+        /* 这里可以保留一些页面特有的、或者您希望覆盖的样式 */
+    </style>
+</head>
+<body>
+    <div class="user-info-bar">
+        <div>
+            {% if username %}
+                <span>欢迎您, <strong>{{ username }}</strong>!</span>
+            {% else %}
+                <span>欢迎, 访客! (请先<a href="{{ url_for('login_page') }}" style="color: #fff; text-decoration: underline;">登录</a>)</span>
+            {% endif %}
+        </div>
+        <div>
+            {% if username %}
+                <button id="logoutBtnGlobal">登出</button> 
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container-box">
+        <h1>选择题在线练习</h1>
+        
+        <div class="question-header">
+            <span id="questionSource" class="question-source">来源: --</span>
+            <span id="setQuestionProgress">题目: 0/0</span>
+        </div>
+
+        <div id="questionText" class="question-text">题目加载中...</div>
+        <div id="optionsContainer" class="options"></div> 
+        <div id="feedbackArea" class="feedback"></div>
+
+        <div class="button-container">
+            <button id="submitBtn">提交答案</button>
+        </div>
+        
+        <div id="resultsArea" class="results-summary" style="display:none;">
+            <h3>本组答题结果</h3>
+            <p id="scoreText"></p>
+            <div id="incorrectReview"></div>
+            <button id="nextSetBtn" style="display:none; margin-top:15px;">开始下一组 / 查看总结</button>
+        </div>    </div>
+
+    <div id="overallProgress" class="progress-info">总进度: 0/0</div>
+
+    <!-- Server data passed to client -->
+    <script type="application/json" id="server-data">
+        {{ all_questions_from_server | tojson }}
+    </script>
+    
+    <script>
+        // --- QUESTION_DATA ---
+        const LOGOUT_API_URL = "{{ url_for('api_logout') }}";
+        let QUESTION_DATA = [];
+
+        function populateAllQuestions() {
+            // Use data passed from the server
+            const serverDataElement = document.getElementById('server-data');
+            let serverData = [];
+            
+            if (serverDataElement && serverDataElement.textContent) {
+                try {
+                    serverData = JSON.parse(serverDataElement.textContent);
+                } catch (e) {
+                    console.error("Failed to parse server data:", e);
+                    serverData = [];
+                }
+            }
+            
+            if (Array.isArray(serverData) && serverData.length > 0) {
+                QUESTION_DATA = serverData;
+            } else {
+                console.warn("No questions received from server or data is invalid. Using fallback.");
+                QUESTION_DATA = []; // Or keep a minimal fallback if desired
+            }
+            
+            // Sort the questions (important if server doesn't guarantee order or for consistency)
+            const typeToSortKey = (qType) => {
+                if (qType === "single") return 1;
+                if (qType === "multiple") return 2;
+                if (qType === "judgment_as_single") return 3;
+                return 4; // Default for any other types
+            };
+
+            QUESTION_DATA.sort((a, b) => {
+                if (a.doc_order !== b.doc_order) return a.doc_order - b.doc_order;
+                if (typeToSortKey(a.type) !== typeToSortKey(b.type)) return typeToSortKey(a.type) - typeToSortKey(b.type);
+                return a.q_num_in_doc - b.q_num_in_doc;
+            });
+            
+            console.log(`Total questions populated: ${QUESTION_DATA.length}`);
+            if (QUESTION_DATA.length === 0) {
+                // Fallback if no questions are loaded
+                QUESTION_DATA.push({
+                    id: "dummy_s1", 
+                    type: "single", 
+                    source_doc: "N/A", 
+                    doc_order: 0, 
+                    q_num_in_doc: 1, 
+                    question: "题库为空或加载失败！请检查后台数据。", 
+                    options: {"A": "好的"}, 
+                    answer: "A"
+                });
+            }
+        }
+
+        let currentMasterIndex = 0;
+        const questionsPerSet = 20; // 您可以调整每组的题目数量
+        let currentSetQuestions = [];
+        let currentQuestionInSetIndex = 0;
+        let scoreForCurrentSet = 0;
+        let incorrectlyAnsweredInSet = [];
+
+        const questionTextEl = document.getElementById('questionText');
+        const optionsContainerEl = document.getElementById('optionsContainer');
+        const submitBtnEl = document.getElementById('submitBtn');
+        const feedbackAreaEl = document.getElementById('feedbackArea');
+        const resultsAreaEl = document.getElementById('resultsArea');
+        const scoreTextEl = document.getElementById('scoreText');
+        const incorrectReviewEl = document.getElementById('incorrectReview');
+        const nextSetBtnEl = document.getElementById('nextSetBtn');
+        const questionSourceEl = document.getElementById('questionSource');
+        const setQuestionProgressEl = document.getElementById('setQuestionProgress');
+        const overallProgressEl = document.getElementById('overallProgress');
+        const logoutButton = document.getElementById('logoutBtnGlobal'); // 获取唯一的登出按钮
+
+        function startNewSet() {
+            scoreForCurrentSet = 0;
+            currentQuestionInSetIndex = 0;
+            incorrectlyAnsweredInSet = [];
+            feedbackAreaEl.textContent = '';
+            feedbackAreaEl.className = 'feedback';
+            resultsAreaEl.style.display = 'none';
+            submitBtnEl.style.display = 'inline-block';
+            submitBtnEl.disabled = false; // 确保提交按钮可用
+            nextSetBtnEl.style.display = 'none';
+            optionsContainerEl.style.display = 'block';
+
+            const startIdx = currentMasterIndex;
+            const endIdx = Math.min(currentMasterIndex + questionsPerSet, QUESTION_DATA.length);
+
+            if (startIdx >= QUESTION_DATA.length) {
+                questionTextEl.textContent = "恭喜！您已完成所有题目！";
+                optionsContainerEl.innerHTML = '';
+                submitBtnEl.style.display = 'none';
+                nextSetBtnEl.style.display = 'none';
+                questionSourceEl.textContent = "来源: --";
+                setQuestionProgressEl.textContent = "题目: --";
+                updateOverallProgress();
+                return;
+            }
+
+            currentSetQuestions = QUESTION_DATA.slice(startIdx, endIdx);
+            
+            if (currentSetQuestions.length > 0) {
+                displayQuestion();
+            } else {
+                 questionTextEl.textContent = "没有更多题目了或题库数据不足。";
+                 submitBtnEl.style.display = 'none'; // 如果没有题目，也隐藏提交按钮
+            }
+            updateOverallProgress();
+        }
+
+        function displayQuestion() {
+            submitBtnEl.disabled = false;
+            feedbackAreaEl.textContent = '';
+            feedbackAreaEl.className = 'feedback';
+
+            const qData = currentSetQuestions[currentQuestionInSetIndex];
+            questionTextEl.textContent = qData.question;
+            questionSourceEl.textContent = `来源: ${qData.source_doc} (题号 ${qData.q_num_in_doc})`;
+            setQuestionProgressEl.textContent = `题目: ${currentQuestionInSetIndex + 1}/${currentSetQuestions.length}`;
+            optionsContainerEl.innerHTML = ''; 
+
+            const sortedOptionKeys = Object.keys(qData.options).sort();
+
+            if (qData.type === "single" || qData.type === "judgment_as_single") {
+                sortedOptionKeys.forEach(key => {
+                    const optionDiv = document.createElement('div');
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'option';
+                    radio.value = key;
+                    radio.id = 'option' + key + currentQuestionInSetIndex; 
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = 'option' + key + currentQuestionInSetIndex;
+                    label.textContent = ` ${key}. ${qData.options[key]}`;
+                    
+                    optionDiv.appendChild(radio);
+                    optionDiv.appendChild(label);
+                    optionDiv.addEventListener('click', () => radio.click());
+                    optionsContainerEl.appendChild(optionDiv);
+                });
+            } else if (qData.type === "multiple") {
+                sortedOptionKeys.forEach(key => {
+                    const optionDiv = document.createElement('div');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'option'; 
+                    checkbox.value = key;
+                    checkbox.id = 'option' + key + currentQuestionInSetIndex;
+
+                    const label = document.createElement('label');
+                    label.htmlFor = 'option' + key + currentQuestionInSetIndex;
+                    label.textContent = ` ${key}. ${qData.options[key]}`;
+
+                    optionDiv.appendChild(checkbox);
+                    optionDiv.appendChild(label);
+                    optionDiv.addEventListener('click', (e) => {
+                        if(e.target !== checkbox) checkbox.checked = !checkbox.checked;
+                    });
+                    optionsContainerEl.appendChild(optionDiv);
+                });
+            }
+            updateOverallProgress();
+        }
+
+        submitBtnEl.addEventListener('click', function() {
+            if (currentQuestionInSetIndex >= currentSetQuestions.length) return;
+
+            const qData = currentSetQuestions[currentQuestionInSetIndex];
+            let userAnswer = "";
+            let isAnswerSelected = false;
+
+            if (qData.type === "single" || qData.type === "judgment_as_single") {
+                const selectedRadio = optionsContainerEl.querySelector('input[name="option"]:checked');
+                if (selectedRadio) {
+                    userAnswer = selectedRadio.value;
+                    isAnswerSelected = true;
+                }
+            } else if (qData.type === "multiple") {
+                const selectedCheckboxes = Array.from(optionsContainerEl.querySelectorAll('input[name="option"]:checked'))
+                                               .map(cb => cb.value)
+                                               .sort(); 
+                if (selectedCheckboxes.length > 0) {
+                    userAnswer = selectedCheckboxes.join('');
+                    isAnswerSelected = true;
+                }
+            }
+
+            if (!isAnswerSelected) {
+                alert("请选择一个答案！");
+                return;
+            }
+
+            const correctAnswer = qData.answer.split('').sort().join(''); 
+            
+            if (userAnswer === correctAnswer) {
+                scoreForCurrentSet++;
+                feedbackAreaEl.textContent = "回答正确！";
+                feedbackAreaEl.className = 'feedback correct';
+            } else {
+                feedbackAreaEl.textContent = `回答错误。正确答案: ${qData.answer}`;
+                feedbackAreaEl.className = 'feedback incorrect';
+                incorrectlyAnsweredInSet.push({
+                    questionData: qData,
+                    userAnswer: userAnswer,
+                    correctAnswer: qData.answer
+                });
+            }
+
+            submitBtnEl.disabled = true;
+            setTimeout(() => {
+                currentQuestionInSetIndex++;
+                if (currentQuestionInSetIndex < currentSetQuestions.length) {
+                    displayQuestion();
+                } else {
+                    currentMasterIndex += currentSetQuestions.length; 
+                    showSetResults();
+                }
+            }, 1500); 
+        });
+        
+        if (nextSetBtnEl) { // 确保按钮存在
+            nextSetBtnEl.addEventListener('click', startNewSet);
+        }
+
+        function showSetResults() {
+            questionTextEl.textContent = "本组答题结束！";
+            optionsContainerEl.style.display = 'none';
+            submitBtnEl.style.display = 'none';
+            feedbackAreaEl.textContent = '';
+            feedbackAreaEl.className = 'feedback';
+
+            resultsAreaEl.style.display = 'block';
+            scoreTextEl.textContent = `你的得分: ${scoreForCurrentSet} / ${currentSetQuestions.length}`;
+            
+            incorrectReviewEl.innerHTML = ''; 
+            if (incorrectlyAnsweredInSet.length > 0) {
+                const reviewTitle = document.createElement('h4');
+                reviewTitle.textContent = "错题回顾与解析:";
+                incorrectReviewEl.appendChild(reviewTitle);
+
+                incorrectlyAnsweredInSet.forEach(item => {
+                    const p = document.createElement('p');
+                    p.className = 'incorrect-answer-review';
+                    p.innerHTML = `<strong>题目 (源: ${item.questionData.source_doc}, 题号 ${item.questionData.q_num_in_doc}):</strong> ${item.questionData.question}<br>
+                                   你的答案: ${item.userAnswer}, <strong>正确答案: ${item.correctAnswer}</strong><br>
+                                   <em>解析: 正确答案是 ${item.correctAnswer}</em>`;
+                    incorrectReviewEl.appendChild(p);
+                });
+            } else if (currentSetQuestions.length > 0) {
+                 const p = document.createElement('p');
+                 p.textContent = "太棒了，本组全部回答正确！";
+                 incorrectReviewEl.appendChild(p);
+            }
+            
+            if (currentMasterIndex < QUESTION_DATA.length) {
+                if(nextSetBtnEl) {
+                    nextSetBtnEl.textContent = "开始下一组";
+                    nextSetBtnEl.style.display = 'inline-block';
+                }
+            } else {
+                if(nextSetBtnEl) nextSetBtnEl.style.display = 'none'; 
+                 const p = document.createElement('p');
+                 p.innerHTML = "<strong>所有题目均已完成！</strong>";
+                 if(incorrectReviewEl) incorrectReviewEl.appendChild(p); // 确保 incorrectReviewEl 存在
+            }
+            updateOverallProgress();
+        }
+
+        function updateOverallProgress() {
+            const questionsDone = Math.min(currentMasterIndex, QUESTION_DATA.length);
+            overallProgressEl.textContent = `总题库进度: ${questionsDone}/${QUESTION_DATA.length}`;
+        }        // 登出按钮逻辑
+        if (logoutButton) { // 确保按钮存在于DOM中
+            logoutButton.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(LOGOUT_API_URL, { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+                    if (response.ok && result.redirect_url) {
+                        window.location.href = result.redirect_url;
+                    } else {
+                        alert(result.message || '登出失败');
+                    }
+                } catch (error) {
+                    console.error('登出请求出错:', error);
+                    alert('登出请求出错，请检查网络连接。');
+                }
+            });
+        } else {
+            // 如果登出按钮不存在（例如用户未登录时，Jinja2条件不渲染它），则不执行任何操作
+            // console.log("登出按钮未找到 (可能用户未登录)");
+        }
+
+        // Initial load
+        populateAllQuestions();
+        if (QUESTION_DATA.length > 0 && (QUESTION_DATA[0].id !== "dummy_s1" || QUESTION_DATA.length > 1) ) {
+            startNewSet();
+        } else {
+             questionTextEl.textContent = QUESTION_DATA.length > 0 ? QUESTION_DATA[0].question : "错误：题库为空或加载失败。";
+             optionsContainerEl.innerHTML = (QUESTION_DATA.length > 0 && QUESTION_DATA[0].id === "dummy_s1") ? "请检查后台数据源。" : "";
+             if(submitBtnEl) submitBtnEl.style.display = 'none';
+             if(QUESTION_DATA.length === 0) console.error("QUESTION_DATA is empty after populateAllQuestions!");
+        }
+    </script>
+</body>
+</html>

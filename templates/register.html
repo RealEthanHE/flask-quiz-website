@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>用户注册</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="auth-container"> <h2>创建账户</h2>
+        <form id="registerForm">
+            <div>
+                <label for="username">用户名:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div>
+                <label for="password">密码:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div>
+                <label for="confirm_password">确认密码:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <button type="submit">注册</button>
+        </form>
+        <p>已有账户? <a href="{{ url_for('login_page') }}">点此登录</a></p>
+        <div id="message" class="message-feedback"></div>
+
+<script>
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirm_password = document.getElementById('confirm_password').value;
+            const messageDiv = document.getElementById('message');
+            
+            // 清空之前的消息并重置样式类
+            messageDiv.textContent = ''; 
+            messageDiv.className = 'message-feedback'; // 重置为基础类
+
+            if (password !== confirm_password) {
+                messageDiv.textContent = '两次输入的密码不一致！';
+                messageDiv.className = 'message-feedback error'; // 设置错误样式
+                return;
+            }
+
+            // 准备要发送给后端的数据
+            const formData = {
+                username: username,
+                password: password
+            };
+
+            try {
+                // 使用 url_for 生成到后端 API 的正确 URL, 'register_page' 是你在 main.py 中为 /register 路由定义的函数名
+                const response = await fetch("{{ url_for('register_page') }}", { 
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(formData) 
+                });
+
+                const result = await response.json(); 
+                messageDiv.textContent = result.message; // 先设置文本内容
+
+                if (response.ok && response.status === 201) { // 201 Created 表示注册成功
+                    messageDiv.className = 'message-feedback success'; // 设置成功样式
+                    // 注册成功后可以提示用户去登录，或者直接跳转
+                    setTimeout(() => { window.location.href = "{{ url_for('login_page') }}"; }, 2000);
+                } else { 
+                    messageDiv.className = 'message-feedback error'; // 设置错误样式
+                }
+            } catch (error) {
+                console.error('注册请求出错:', error);
+                messageDiv.textContent = '注册请求出错，请检查网络连接。';
+                messageDiv.className = 'message-feedback error'; // 网络错误也用错误样式
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+/* static/style.css */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #f0f2f5; /* 更柔和的浅灰色背景 */
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 96vh; /* 占据大部分视窗高度 */
+    box-sizing: border-box;
+}
+
+/* 通用内容容器样式 */
+.container-box {
+    background-color: #ffffff;
+    padding: 30px 35px; /* 增加内边距 */
+    border-radius: 10px; /* 更圆润的边角 */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* 更柔和的阴影 */
+    width: 100%;
+    max-width: 800px; /* 刷题区域最大宽度 */
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+/* 登录/注册页面的特定容器样式 */
+.auth-container {
+    max-width: 420px; /* 登录注册框宽度 */
+    text-align: center;
+}
+
+h1 {
+    color: #1a2c45; /* 深蓝灰色标题 */
+    font-size: 2.2em;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+h2 {
+    color: #2c3e50; /* 较深的灰色 */
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+/* --- 按钮样式 --- */
+button, input[type="submit"] {
+    background-color: #007bff; /* 主题蓝色 */
+    color: white;
+    border: none;
+    padding: 12px 24px; /* 统一内边距 */
+    font-size: 1em;
+    font-weight: 500;
+    border-radius: 6px; /* 统一圆角 */
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    /* box-shadow: 0 2px 4px rgba(0,0,0,0.08); */
+}
+button:hover, input[type="submit"]:hover {
+    background-color: #0056b3; /* 悬停时变深 */
+    transform: translateY(-1px); /* 轻微上移效果 */
+}
+button:active, input[type="submit"]:active {
+    transform: translateY(0px); /* 点击时复原 */
+}
+button:disabled {
+    background-color: #adb5bd; /* 禁用时颜色 */
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* --- 表单输入框样式 (用于登录/注册) --- */
+.auth-container form div {
+    margin-bottom: 18px;
+    text-align: left;
+}
+.auth-container label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 7px;
+    color: #495057;
+    font-size: 0.95em;
+}
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    width: 100%; /* 占据父容器宽度 */
+    padding: 12px 15px; /* 舒适的内边距 */
+    margin-bottom: 5px; /* 为可能的错误提示留空间 */
+    border: 1px solid #ced4da; /* 更柔和的边框 */
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    outline: none;
+}
+.auth-container p { /* "已有账户?" 等文字 */
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #6c757d;
+}
+.auth-container a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+.auth-container a:hover {
+    text-decoration: underline;
+}
+
+
+/* --- 刷题页面 (`quiz_website.html`) 特定样式 --- */
+.user-info-bar {
+    width: 100%;
+    background-color: #6c757d; /* 深灰色背景 */
+    color: #fff;
+    padding: 12px 20px;
+    margin-bottom: 25px; /* 与下方容器的间距 */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+}
+.user-info-bar span {
+    font-size: 0.95em;
+}
+.user-info-bar strong {
+    font-weight: 600;
+}
+.user-info-bar button#logoutBtnGlobal { /* 登出按钮特定样式 */
+    background-color: #dc3545; /* 红色表示登出/危险操作 */
+    font-size: 0.85em;
+    padding: 8px 15px;
+}
+.user-info-bar button#logoutBtnGlobal:hover {
+    background-color: #c82333;
+}
+
+.quiz-container .question-header {
+    border-bottom: 1px solid #e9ecef; /* 更浅的分割线 */
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.quiz-container .question-source {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+#setQuestionProgress { /* 刷题进度 */
+    font-size: 0.9em;
+    color: #6c757d;
+    font-weight: 500;
+}
+.quiz-container .question-text {
+    font-size: 1.3em; /* 题目文字大小 */
+    font-weight: 600;
+    color: #212529; /* 深色题目文字 */
+    min-height: 70px; /* 确保题目区域有足够高度 */
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+.quiz-container .options div { /* 每个选项的容器 */
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6; /* 选项边框 */
+    padding: 14px 18px; /* 选项内边距 */
+    margin-bottom: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+    display: flex; /* 用于垂直对齐选项按钮和文字 */
+    align-items: center;
+}
+.quiz-container .options div:hover {
+    background-color: #e9ecef; /* 悬停时背景 */
+    border-color: #adb5bd;
+    transform: scale(1.01); /* 轻微放大 */
+}
+.quiz-container .options input[type="radio"],
+.quiz-container .options input[type="checkbox"] {
+    margin-right: 15px; /* 选项按钮和文字间距 */
+    transform: scale(1.2);
+    flex-shrink: 0; /* 防止按钮被压缩 */
+}
+.quiz-container .options label {
+    vertical-align: middle;
+    color: #495057;
+    flex-grow: 1; /* 使标签文字占据剩余空间 */
+}
+
+/* --- 反馈信息样式 (用于登录、注册和刷题反馈) --- */
+.feedback, .message-feedback {
+    margin-top: 20px;
+    padding: 12px 18px;
+    border-radius: 5px;
+    font-size: 0.95em;
+    font-weight: 500;
+    text-align: center;
+    border: 1px solid transparent;
+    display: none; /* 默认不显示，通过JS添加 .success 或 .error 来显示 */
+}
+.feedback.correct, .message-feedback.success {
+    background-color: #d1e7dd; /* 成功提示背景 */
+    color: #0f5132;      /* 成功提示文字 */
+    border-color: #badbcc;
+    display: block;
+}
+.feedback.incorrect, .message-feedback.error {
+    background-color: #f8d7da; /* 错误提示背景 */
+    color: #842029;      /* 错误提示文字 */
+    border-color: #f5c2c7;
+    display: block;
+}
+
+/* 结果回顾区域 */
+.results-summary {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f0f8ff; /* 淡蓝色背景 */
+    border-radius: 8px;
+    border: 1px solid #cfe2ff;
+}
+.results-summary h3 {
+    color: #004085;
+    margin-top: 0;
+    border-bottom: 1px solid #b8daff;
+    padding-bottom: 10px;
+}
+.results-summary #scoreText {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #004085;
+    margin-bottom: 15px;
+}
+.incorrect-answer-review {
+    margin-top:15px;
+    padding: 10px;
+    padding-left: 15px;
+    border-left: 4px solid #fd7e14; /* 橙色左边框 */
+    background-color: #fff3e0; /* 非常浅的橙色背景 */
+    border-radius: 4px;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+.incorrect-answer-review strong {
+    color: #bf5f00;
+}
+
+/* 整体进度条 */
+.progress-info {
+    width: 100%;
+    max-width: 800px; /* 与主容器对齐 */
+    text-align: right;
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 15px;
+    padding-right: 5px; /* 如果在容器外部，给一点边距 */
+    box-sizing: border-box;
+}

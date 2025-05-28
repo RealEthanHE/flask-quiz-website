@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>用户登录</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>登录</h2>
+        <form id="loginForm">
+            <div>
+                <label for="username">用户名:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div>
+                <label for="password">密码:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">登录</button>
+        </form>
+        <p>还没有账户? <a href="register.html">点此注册</a></p>
+        <div id="message" class="message-feedback"></div>
+    </div>
+
+<script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+
+            // 清空之前的消息并重置样式类
+            messageDiv.textContent = '';
+            messageDiv.className = 'message-feedback'; // 重置为基础类
+            
+            const formData = { username: username, password: password };
+
+            try {
+                // 使用 url_for 生成到后端 API 的正确 URL, 'login_page' 是你在 main.py 中为 /login 路由定义的函数名
+                const response = await fetch("{{ url_for('login_page') }}", { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                messageDiv.textContent = result.message; // 先设置文本内容
+
+                if (response.ok) {
+                    messageDiv.className = 'message-feedback success'; // 设置成功样式
+                    if (result.redirect_url) { 
+                        setTimeout(() => { window.location.href = result.redirect_url; }, 1500);
+                    }
+                } else {
+                    messageDiv.className = 'message-feedback error'; // 设置错误样式
+                }
+            } catch (error) {
+                console.error('登录请求出错:', error);
+                messageDiv.textContent = '登录请求出错，请检查网络连接。';
+                messageDiv.className = 'message-feedback error'; // 网络错误也用错误样式
+            }
+        });
+    </script>
+</body>
+</html>
