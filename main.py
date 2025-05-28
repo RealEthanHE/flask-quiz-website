@@ -292,7 +292,7 @@ ALL_QUESTION_DATA_PYTHON = [
     # Multiple Choice (多项选择题) from 14.doc
     {"id": "14_m1", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 1, "question": "1. 推进强军事业必须坚持（   ）。", "options": {"A":"政治建军", "B":"改革强军", "C":"科技强军", "D":"人才强军", "E":"依法治军"}, "answer": "ABCDE"}, # [cite: 19]
     {"id": "14_m2", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 2, "question": "2. 新时代人民军队使命任务是（   ）。", "options": {"A":"为巩固中国共产党领导和我国社会主义制度提供战略支撑", "B":"为捍卫国家主权、统一和领土完整提供战略支撑", "C":"为维护我国海外利益提供战略支撑", "D":"为促进世界和平与发展提供战略支撑"}, "answer": "ABCD"}, # [cite: 19]
-    {"id": "14_m3", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 3, "question": "3.进入新时代，我国军队建设存在的问题是（  ）。", "options": {"A":"军队现代化水平与国家安全需求相比差距还很大", "B":"军队现代化水平与世界先进军事水平相比差距还很大", "C":"军队打现代化战争能力不够", "D":"各级干部指挥现代化战争能力不够"}, "answer": "ABCD"}, # [cite: 19]
+    {"id": "14_m3", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 3, "question": "3.进入新时代，我国军队建设存在的问题是（ ）。", "options": {"A":"军队现代化水平与国家安全需求相比差距还很大", "B":"军队现代化水平与世界先进军事水平相比差距还很大", "C":"军队打现代化战争能力不够", "D":"各级干部指挥现代化战争能力不够"}, "answer": "ABCD"}, # [cite: 19]
     {"id": "14_m4", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 4, "question": "4.党在新时代强军目标的科学内涵是（ ）。", "options": {"A":"听党指挥是灵魂，决定军队建设的政治方向", "B":"能打胜仗是核心，反映军队的根本职能和军队建设的根本指向", "C":"作风优良是保证，关系军队的性质、宗旨、本色", "D":"体现了坚持党的建军原则、人民军队根本职能、特有政治优势的高度统一"}, "answer": "ABCD"}, # [cite: 19]
     {"id": "14_m5", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 5, "question": "5.党在新时代的强军目标是建设一支（   ）的人民军队。", "options": {"A":"听党指挥", "B":"能打胜仗", "C":"作风优良", "D":"敢于创新"}, "answer": "ABC"}, # [cite: 19, 20]
     {"id": "14_m6", "type": "multiple", "source_doc": "14.doc", "doc_order": 14, "q_num_in_doc": 6, "question": "6.我国国防和军队建设“新三步走” 战略安排是（  ）。", "options": {"A":"到2027年，实现建军一百年奋斗目标", "B":"到2035年，基本实现国防和军队现代化", "C":"到本世纪中叶，把人民军队全面建成世界一流军队", "D":"到2050年，全面实现军事作战无人化、智能化"}, "answer": "ABC"}, # [cite: 20]
@@ -388,7 +388,6 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "16_j3", "type": "judgment_as_single", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 3, "question": "3. 中国外交秉持真实亲诚理念和正确义利观，加强同周边国家的团结合作。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 31] # "真实亲诚"是周边外交理念，"正确义利观"是处理与发展中国家关系的原则，题目表述可能不完全准确，但答案给了错误。
     {"id": "16_j4", "type": "judgment_as_single", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 4, "question": "4.中国外交秉持亲诚惠容的周边外交理念，着力深化互利共嬴格局，找准同周边国家互利合作的战略契合点，构建区域经济一体化新格局。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 31, 32]
     {"id": "16_j5", "type": "judgment_as_single", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 5, "question": "5. 中国外交秉持求同存异、相互尊重、互学互鉴理念，构建新型政党关系。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 32]
-    {"id": "16_j6", "type": "judgment_as_single", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 6, "question": "6.全人类共同价值与西方所谓的“普世价值”是两个不同的概念，两者存在根本区别。前者反映了全人类的共同利益，体现了不同文明的价值共识，后者仅代表部分西方国家的利益，依靠霸权强行输出。世界上不存在高人一等的“自由民主”，不存在唯我独尊的“普世价值”。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 32]
 
     # --- Document 17.doc (doc_order: 17) ---
     # Single Choice (单项选择题)
@@ -409,7 +408,7 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "17_m3", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 3, "question": "3.新形势下党执政面临的“四大危险”包括精神懈怠危险、（  ）", "options": {"A":"能力不足危险", "B":"脱离群众危险", "C":"消极腐败危险", "D":"动力不足考验"}, "answer": "ABC"}, # [cite: 35, 36]
     {"id": "17_m4", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 4, "question": "4.加强党的自身建设是（   ）。", "options": {"A":"把党锻造成为坚强有力的马克思主义执政党的迫切需要", "B":"新形势下推进伟大事业的必然要求", "C":"新形势下推进进行伟大斗争的必然要求", "D":"新形势下推进实现伟大梦想的必然要求"}, "answer": "ABCD"}, # [cite: 36]
     {"id": "17_m5", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 5, "question": "5.全面从严治党，关键在严，“关键在严”，就是（  ）。", "options": {"A":"坚持严字当头，把严的要求贯穿党的建设全过程", "B":"做到真管真严、敢管敢严、长管长严", "C":"敢于动真格，不降标准，不图形式，不走过场", "D":"让一切违纪违规的言行无处遁形"}, "answer": "ABCD"}, # [cite: 36]
-    {"id": "17_m6", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 6, "question": "6.全面从严治党，“要害在治”，就是（  ）。", "options": {"A":"要真正解决问题、切实担起责任", "B":"从党中央到地方各级党委都要担负起主体责任", "C":"各级纪委要担负起监督责任", "D":"敢于瞪眼黑脸，勇于执纪问责", "E":"坚持标本兼治，拔“烂树”、治“病树”、正“歪树”"}, "answer": "ABCDE"}, # [cite: 36]
+    {"id": "17_m6", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 6, "question": "6.全面从严治党，“要害在治”，就是（ ）。", "options": {"A":"要真正解决问题、切实担起责任", "B":"从党中央到地方各级党委都要担负起主体责任", "C":"各级纪委要担负起监督责任", "D":"敢于瞪眼黑脸，勇于执纪问责", "E":"坚持标本兼治，拔“烂树”、治“病树”、正“歪树”"}, "answer": "ABCDE"}, # [cite: 36]
     {"id": "17_m7", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 7, "question": "7.全面从严治党是一项管党治党的系统工程，要（  ）。", "options": {"A":"坚持内容上全涵盖，党的建设推进到哪里，全面从严治党体系就要构建到哪里", "B":"坚持对象上全覆盖，面向党的各级组织和全体党员", "C":"坚持责任上全链条,让每名党员、干部行使应有权利、履行应尽责任", "D":"坚持制度上全贯通，把制度建设要求体现到全面从严治党全过程"}, "answer": "ABCD"}, # [cite: 36]
     {"id": "17_m8", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 8, "question": "8.新时代党的建设总要求,包括（   ）。", "options": {"A":"坚持和加强党的全面领导，坚持党要管党、全面从严治党", "B":"以加强党的长期执政能力建设、先进性和纯洁性建设为主线", "C":"以党的政治建设为统领，以坚定理想信念宗旨为根基，全面推进党的各项建设", "D":"把制度建设贯穿其中，深入推进反腐败斗争", "E":"把党建设成为人民衷心拥护、勇于自我革命的马克思主义执政党"}, "answer": "ABCDE"}, # [cite: 36]
     {"id": "17_m9", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 9, "question": "9.加强作风建设，必须（  ）。", "options": {"A":"紧紧围绕保持党同人民群众的血肉联系，增强群众观念和群众感情", "B":"要锲而不舍落实中央八项规定精神，持续深化纠治“四风”", "C":"要弘扬党的光荣传统和优良作风", "D":"促进党员干部特别是领导干部带头深入调查研究", "E":"要推进作风建设常态化长效化"}, "answer": "ABCDE"}, # [cite: 36]
@@ -630,6 +629,39 @@ def health_check():
             "error": str(e),
             "database_path": DATABASE,
             "working_directory": os.getcwd()
+        }), 500
+
+@app.route('/debug/users', methods=['GET'])
+def debug_users():
+    """调试端点：查看用户列表（仅用于验证，生产环境应该移除）"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 获取所有用户（隐藏密码）
+        cursor.execute("SELECT id, username FROM users ORDER BY id")
+        users = cursor.fetchall()
+        
+        user_list = []
+        for user in users:
+            user_list.append({
+                "id": user[0],
+                "username": user[1]
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            "total_users": len(user_list),
+            "users": user_list,
+            "database_path": DATABASE
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"获取用户列表失败: {e}")
+        return jsonify({
+            "error": str(e),
+            "database_path": DATABASE
         }), 500
 
 if __name__ == '__main__':
