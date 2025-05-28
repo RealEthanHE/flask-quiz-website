@@ -1,0 +1,13 @@
+# Render deployment configuration
+name: flask-quiz-website
+type: web
+env: python
+buildCommand: pip install -r requirements.txt
+startCommand: python main.py
+envVars:
+  - key: SECRET_KEY
+    generateValue: true
+  - key: FLASK_DEBUG
+    value: false
+  - key: PORT
+    value: 10000
