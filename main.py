@@ -15,12 +15,18 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_very_secret_key_for_session_management')
 
 # 数据库配置 - 适配生产环境
-if os.environ.get('RENDER') or os.environ.get('RAILWAY_ENVIRONMENT'):
-    # 生产环境使用tmp目录下的数据库
-    DATABASE = '/tmp/database.db'
+if os.environ.get('RENDER'):
+    # Render环境：使用项目目录下的数据库（持久化存储）
+    DATABASE = os.path.join(os.getcwd(), 'database.db')
+    logger.info(f"Render环境，数据库路径: {DATABASE}")
+elif os.environ.get('RAILWAY_ENVIRONMENT'):
+    # Railway环境：使用项目目录下的数据库
+    DATABASE = os.path.join(os.getcwd(), 'database.db')
+    logger.info(f"Railway环境，数据库路径: {DATABASE}")
 else:
     # 开发环境使用本地文件
     DATABASE = 'database.db'
+    logger.info(f"开发环境，数据库路径: {DATABASE}")
 
 # 获取端口配置，适配云平台部署
 PORT = int(os.environ.get('PORT', 5000))
@@ -581,32 +587,79 @@ def api_logout():
     session.pop('username', None)
     return jsonify({'message': '登出成功！', 'redirect_url': url_for('login_page')}), 200
 
-if __name__ == '__main__':
-    # 生产环境数据库初始化
-    if os.environ.get('RENDER') or os.environ.get('RAILWAY_ENVIRONMENT'):
-        # 在生产环境中，每次启动都初始化数据库（因为使用临时存储）
-        init_db()
-        print(f"生产环境数据库初始化完成: {DATABASE}")
-    else:
-        # 开发环境的现有逻辑
-        original_init_db_exists = 'init_db' in globals() 
-        if original_init_db_exists:
-            # 确保数据库和users表存在
-            if not os.path.exists(DATABASE):
-                init_db() # 这会创建所有表，包括我们暂时不用的
-            else:
-                conn = get_db_connection()
-                cur = conn.cursor()
-                cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users';")
-                if cur.fetchone() is None:
-                    conn.close() 
-                    init_db() 
-                else:
-                    conn.close()
-                    print("数据库和 users 表已确认存在。")
+@app.route('/health', methods=['GET'])
+def health_check():
+    """健康检查端点，用于验证应用和数据库状态"""
+    try:
+        # 检查数据库连接
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 检查users表
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+        table_exists = cursor.fetchone() is not None
+        
+        if table_exists:
+            cursor.execute("SELECT COUNT(*) FROM users")
+            user_count = cursor.fetchone()[0]
         else:
-            print("警告: init_db 函数未定义。")
+            user_count = "N/A (table not exists)"
+        
+        conn.close()
+        
+        status = {
+            "status": "healthy",
+            "database_path": DATABASE,
+            "database_exists": os.path.exists(DATABASE),
+            "users_table_exists": table_exists,
+            "user_count": user_count,
+            "working_directory": os.getcwd(),
+            "environment": {
+                "RENDER": os.environ.get('RENDER', 'Not set'),
+                "RAILWAY_ENVIRONMENT": os.environ.get('RAILWAY_ENVIRONMENT', 'Not set'),
+                "PORT": os.environ.get('PORT', 'Not set')
+            }
+        }
+        
+        return jsonify(status), 200
+        
+    except Exception as e:
+        logger.error(f"健康检查失败: {e}")
+        return jsonify({
+            "status": "unhealthy",
+            "error": str(e),
+            "database_path": DATABASE,
+            "working_directory": os.getcwd()
+        }), 500
+
+if __name__ == '__main__':
+    logger.info("应用启动中...")
+    logger.info(f"DATABASE路径: {DATABASE}")
+    logger.info(f"工作目录: {os.getcwd()}")
+    logger.info(f"环境变量 RENDER: {os.environ.get('RENDER')}")
+    logger.info(f"环境变量 RAILWAY_ENVIRONMENT: {os.environ.get('RAILWAY_ENVIRONMENT')}")
+    
+    # 确保数据库初始化
+    try:
+        init_db()
+        logger.info("数据库初始化完成")
+    except Exception as e:
+        logger.error(f"数据库初始化失败: {e}")
+        
+    # 验证数据库状态
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM users")
+        user_count = cursor.fetchone()[0]
+        logger.info(f"当前用户数量: {user_count}")
+        conn.close()
+    except Exception as e:
+        logger.error(f"数据库验证失败: {e}")
         
     # 生产环境配置
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    logger.info(f"调试模式: {debug_mode}")
+    logger.info(f"监听端口: {PORT}")
+    
     app.run(host='0.0.0.0', port=PORT, debug=debug_mode)
