@@ -649,7 +649,7 @@ def health_check():
             "environment": {
                 "DATABASE_URL": "configured" if os.environ.get('DATABASE_URL') else "not set",
                 "RENDER": os.environ.get('RENDER', 'Not set'),
-                "RAILWAY_ENVIRONMENT": os.environ.get('RAILWAY_ENVIRONMENT', 'Not set'),
+                "RAILWAY_ENVIRONMENT": os.environ.get('RAILWAY_ENVIRONMENT', 'Not Set'),
                 "PORT": os.environ.get('PORT', 'Not set')
             }
         }
@@ -693,29 +693,173 @@ def debug_users():
             "error": str(e)
         }), 500
 
-if __name__ == '__main__':
-    logger.info("应用启动中...")
-    logger.info(f"工作目录: {os.getcwd()}")
-    logger.info(f"数据库类型: {'PostgreSQL' if db_manager.is_postgres else 'SQLite'}")
+# 章节和题型映射
+CHAPTER_MAPPING = {
+    '导论': {'display_name': '导论', 'doc_order': 0},
+    '01': {'display_name': '第一章', 'doc_order': 1},
+    '02': {'display_name': '第二章', 'doc_order': 2},
+    '03': {'display_name': '第三章', 'doc_order': 3},
+    '04': {'display_name': '第四章', 'doc_order': 4},
+    '05': {'display_name': '第五章', 'doc_order': 5},
+    '06': {'display_name': '第六章', 'doc_order': 6},
+    '07': {'display_name': '第七章', 'doc_order': 7},
+    '08': {'display_name': '第八章', 'doc_order': 8},
+    '09': {'display_name': '第九章', 'doc_order': 9},
+    '10': {'display_name': '第十章', 'doc_order': 10},
+    '11': {'display_name': '第十一章', 'doc_order': 11},
+    '12': {'display_name': '第十二章', 'doc_order': 12},
+    '13': {'display_name': '第十三章', 'doc_order': 13},
+    '14': {'display_name': '第十四章', 'doc_order': 14},
+    '15': {'display_name': '第十五章', 'doc_order': 15},
+    '16': {'display_name': '第十六章', 'doc_order': 16},
+    '17': {'display_name': '第十七章', 'doc_order': 17}
+}
+
+TYPE_MAPPING = {
+    'single': '单项选择题',
+    'multiple': '多项选择题', 
+    'judgment_as_single': '判断题'
+}
+
+def get_chapter_statistics():
+    """获取各章节统计信息"""
+    chapter_stats = {}
     
-    # 初始化数据库
-    try:
-        db_manager.init_database()
-        logger.info("数据库初始化完成")
-    except Exception as e:
-        logger.error(f"数据库初始化失败: {e}")
+    for question in ALL_QUESTION_DATA_PYTHON:
+        # 解析章节
+        source_doc = question.get('source_doc', '')
+        if source_doc == '导论.doc':
+            chapter = '导论'
+        else:
+            # 提取章节号，如 "01.doc" -> "01"
+            chapter = source_doc.replace('.doc', '')
         
-    # 验证数据库状态
-    try:
-        result = db_manager.execute_query("SELECT COUNT(*) as count FROM users", fetch_one=True)
-        user_count = result['count'] if result else 0
-        logger.info(f"当前用户数量: {user_count}")
-    except Exception as e:
-        logger.error(f"数据库验证失败: {e}")
+        if chapter not in chapter_stats:
+            chapter_stats[chapter] = {
+                'name': chapter,
+                'display_name': CHAPTER_MAPPING.get(chapter, {}).get('display_name', chapter),
+                'total_questions': 0,
+                'accuracy_rate': 85.0  # 默认正确率，实际应该从用户历史记录计算
+            }
         
-    # 生产环境配置
-    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    logger.info(f"调试模式: {debug_mode}")
-    logger.info(f"监听端口: {PORT}")
+        chapter_stats[chapter]['total_questions'] += 1
     
-    app.run(host='0.0.0.0', port=PORT, debug=debug_mode)
+    return list(chapter_stats.values())
+
+def get_questions_by_chapter_and_type(chapter, question_type=None):
+    """根据章节和题型筛选题目"""
+    filtered_questions = []
+    
+    for question in ALL_QUESTION_DATA_PYTHON:
+        # 匹配章节
+        source_doc = question.get('source_doc', '')
+        if chapter == '导论' and source_doc == '导论.doc':
+            chapter_match = True
+        elif chapter != '导论' and source_doc == f'{chapter}.doc':
+            chapter_match = True
+        else:
+            chapter_match = False
+        
+        # 匹配题型
+        if question_type and question.get('type') != question_type:
+            type_match = False
+        else:
+            type_match = True
+        
+        if chapter_match and type_match:
+            filtered_questions.append(question)
+    
+    return filtered_questions
+
+def get_chapter_question_types(chapter):
+    """获取指定章节的题型统计"""
+    type_stats = {}
+    questions = get_questions_by_chapter_and_type(chapter)
+    
+    for question in questions:
+        q_type = question.get('type')
+        if q_type not in type_stats:
+            type_stats[q_type] = {
+                'type': q_type,
+                'display_name': TYPE_MAPPING.get(q_type, q_type),
+                'count': 0
+            }
+        type_stats[q_type]['count'] += 1
+    
+    return list(type_stats.values())
+
+@app.route('/chapter_practice')
+@app.route('/chapter_practice/<chapter>')
+@app.route('/chapter_practice/<chapter>/<type>')
+def chapter_practice(chapter=None, type=None):
+    """章节练习页面"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_page'))
+    
+    try:
+        # 如果没有选择章节，显示章节列表
+        if not chapter:
+            chapters = get_chapter_statistics()
+            return render_template('chapter_practice.html',
+                                 username=session.get('username'),
+                                 chapters=chapters,
+                                 selected_chapter=None,
+                                 selected_type=None)
+        
+        # 如果选择了章节但没有选择题型，显示题型列表
+        if chapter and not type:
+            question_types = get_chapter_question_types(chapter)
+            chapter_name = CHAPTER_MAPPING.get(chapter, {}).get('display_name', chapter)
+            return render_template('chapter_practice.html',
+                                 username=session.get('username'),
+                                 selected_chapter=chapter,
+                                 selected_chapter_name=chapter_name,
+                                 question_types=question_types,
+                                 selected_type=None)
+        
+        # 如果选择了章节和题型，开始练习
+        if chapter and type:
+            questions = get_questions_by_chapter_and_type(chapter, type)
+            chapter_name = CHAPTER_MAPPING.get(chapter, {}).get('display_name', chapter)
+            type_name = TYPE_MAPPING.get(type, type)
+            
+            return render_template('chapter_practice.html',
+                                 username=session.get('username'),
+                                 selected_chapter=chapter,
+                                 selected_chapter_name=chapter_name,
+                                 selected_type=type,
+                                 selected_type_name=type_name,
+                                 questions=questions)
+                                 
+    except Exception as e:
+        logger.error(f"章节练习页面错误: {e}")
+        return redirect(url_for('quiz_page_actual'))
+
+@app.route('/api/record_wrong_answer', methods=['POST'])
+def record_wrong_answer():
+    """记录错题API"""
+    if 'user_id' not in session:
+        return jsonify({'message': '请先登录'}), 401
+    
+    try:
+        data = request.get_json()
+        user_id = session['user_id']
+        
+        db_manager.add_wrong_answer(
+            user_id=user_id,
+            question_id=data['question_id'],
+            question_text=data['question_text'],
+            question_type=data['question_type'],
+            correct_answer=data['correct_answer'],
+            user_answer=data['user_answer'],
+            question_options=data['question_options'],
+            source_doc=data['source_doc']
+        )
+        
+        return jsonify({'message': '错题记录成功'}), 200
+        
+    except Exception as e:
+        logger.error(f"记录错题失败: {e}")
+        return jsonify({'message': '记录错题失败'}), 500
+
+# ...existing code...

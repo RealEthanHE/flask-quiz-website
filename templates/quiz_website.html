@@ -28,17 +28,19 @@
         <div class="container-box">
             <h1>🚀 智能选择题练习系统</h1>
             <p class="subtitle">基于AI的个性化学习体验</p>
-            
-            <!-- 导航栏 -->
+              <!-- 导航栏 -->
             <div class="navigation-bar">
                 <div style="display: flex; gap: 15px; align-items: center;">
+                    <a href="{{ url_for('chapter_practice') }}" class="btn btn-outline">
+                        📖 章节练习
+                    </a>
                     <a href="{{ url_for('wrong_answers_page') }}" class="btn btn-outline">
                         📚 我的错题本
                     </a>
                     {% if mode == 'retry' %}
                     <span class="mode-indicator mode-retry">🔄 错题重做模式</span>
                     {% else %}
-                    <span class="mode-indicator mode-normal">📝 正常练习模式</span>
+                    <span class="mode-indicator mode-normal">📝 混合练习模式</span>
                     {% endif %}
                 </div>
                 <div>
