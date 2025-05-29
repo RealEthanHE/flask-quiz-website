@@ -158,8 +158,7 @@ class DatabaseManager:
             
             conn.commit()
             return result
-            
-        except Exception as e:
+              except Exception as e:
             conn.rollback()
             logger.error(f"数据库查询失败: {e}")
             raise
@@ -171,16 +170,27 @@ class DatabaseManager:
                         correct_answer, user_answer, question_options, source_doc):
         """添加错题记录"""
         # 检查是否已存在该错题
-        existing = self.execute_query(
-            "SELECT id, wrong_count FROM wrong_answers WHERE user_id = ? AND question_id = ?",
-            (user_id, question_id),
-            fetch_one=True
-        )
+        if self.is_postgres:
+            existing = self.execute_query(
+                "SELECT id, wrong_count FROM wrong_answers WHERE user_id = %s AND question_id = %s",
+                (user_id, question_id),
+                fetch_one=True
+            )
+        else:
+            existing = self.execute_query(
+                "SELECT id, wrong_count FROM wrong_answers WHERE user_id = ? AND question_id = ?",
+                (user_id, question_id),
+                fetch_one=True
+            )
         
         if existing:
             # 更新错题次数
-            query = "UPDATE wrong_answers SET wrong_count = wrong_count + 1, last_wrong_at = CURRENT_TIMESTAMP WHERE id = ?"
-            params = (existing['id'],) if self.is_postgres else (existing[0],)
+            if self.is_postgres:
+                query = "UPDATE wrong_answers SET wrong_count = wrong_count + 1, last_wrong_at = CURRENT_TIMESTAMP WHERE id = %s"
+                params = (existing['id'],)
+            else:
+                query = "UPDATE wrong_answers SET wrong_count = wrong_count + 1, last_wrong_at = CURRENT_TIMESTAMP WHERE id = ?"
+                params = (existing[0],)
             self.execute_query(query, params)
         else:
             # 添加新错题
@@ -196,17 +206,22 @@ class DatabaseManager:
                 query = '''INSERT INTO wrong_answers 
                           (user_id, question_id, question_text, question_type, correct_answer, 
                            user_answer, question_options, source_doc) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
-            
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''            
             self.execute_query(query, (user_id, question_id, question_text, question_type, 
                                      correct_answer, user_answer, options_str, source_doc))
     
     def get_wrong_answers(self, user_id, limit=None):
         """获取用户的错题列表"""
-        query = '''SELECT * FROM wrong_answers 
-                   WHERE user_id = ? AND is_corrected = ? 
-                   ORDER BY last_wrong_at DESC'''
-        params = (user_id, False) if self.is_postgres else (user_id, 0)
+        if self.is_postgres:
+            query = '''SELECT * FROM wrong_answers 
+                       WHERE user_id = %s AND is_corrected = %s 
+                       ORDER BY last_wrong_at DESC'''
+            params = (user_id, False)
+        else:
+            query = '''SELECT * FROM wrong_answers 
+                       WHERE user_id = ? AND is_corrected = ? 
+                       ORDER BY last_wrong_at DESC'''
+            params = (user_id, 0)
         
         if limit:
             query += f" LIMIT {limit}"
@@ -225,22 +240,36 @@ class DatabaseManager:
     def get_wrong_answer_stats(self, user_id):
         """获取错题统计"""
         # 总错题数
-        total_query = "SELECT COUNT(*) as total FROM wrong_answers WHERE user_id = ?"
+        if self.is_postgres:
+            total_query = "SELECT COUNT(*) as total FROM wrong_answers WHERE user_id = %s"
+        else:
+            total_query = "SELECT COUNT(*) as total FROM wrong_answers WHERE user_id = ?"
         total_result = self.execute_query(total_query, (user_id,), fetch_one=True)
         total_wrong = total_result['total'] if self.is_postgres else total_result[0]
         
         # 未纠正错题数
-        uncorrected_query = "SELECT COUNT(*) as uncorrected FROM wrong_answers WHERE user_id = ? AND is_corrected = ?"
-        uncorrected_params = (user_id, False) if self.is_postgres else (user_id, 0)
+        if self.is_postgres:
+            uncorrected_query = "SELECT COUNT(*) as uncorrected FROM wrong_answers WHERE user_id = %s AND is_corrected = %s"
+            uncorrected_params = (user_id, False)
+        else:
+            uncorrected_query = "SELECT COUNT(*) as uncorrected FROM wrong_answers WHERE user_id = ? AND is_corrected = ?"
+            uncorrected_params = (user_id, 0)
         uncorrected_result = self.execute_query(uncorrected_query, uncorrected_params, fetch_one=True)
         uncorrected_wrong = uncorrected_result['uncorrected'] if self.is_postgres else uncorrected_result[0]
         
         # 按题型统计
-        type_query = '''SELECT question_type, COUNT(*) as count 
-                       FROM wrong_answers 
-                       WHERE user_id = ? AND is_corrected = ?
-                       GROUP BY question_type'''
-        type_params = (user_id, False) if self.is_postgres else (user_id, 0)
+        if self.is_postgres:
+            type_query = '''SELECT question_type, COUNT(*) as count 
+                           FROM wrong_answers 
+                           WHERE user_id = %s AND is_corrected = %s
+                           GROUP BY question_type'''
+            type_params = (user_id, False)
+        else:
+            type_query = '''SELECT question_type, COUNT(*) as count 
+                           FROM wrong_answers 
+                           WHERE user_id = ? AND is_corrected = ?
+                           GROUP BY question_type'''
+            type_params = (user_id, 0)
         type_results = self.execute_query(type_query, type_params, fetch_all=True)
         
         return {
