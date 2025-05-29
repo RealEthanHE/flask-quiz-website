@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 我的错题本 - 智能学习系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="user-info-bar">
+            <div>
+                {% if username %}
+                    <span>欢迎您, <strong>{{ username }}</strong>! 📚</span>
+                {% else %}
+                    <span>欢迎, 访客! 请先<a href="{{ url_for('login_page') }}" style="color: #60a5fa; text-decoration: underline;">登录</a> 🔐</span>
+                {% endif %}
+            </div>
+            <div>
+                {% if username %}
+                    <button id="logoutBtnGlobal" class="btn-danger">退出登录</button> 
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="container-box wrong-answers-container">
+            <h1>📚 我的错题本</h1>
+            <p class="subtitle">智能错题管理，助力高效学习</p>
+            
+            <!-- 导航栏 -->
+            <div class="navigation-bar">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <a href="{{ url_for('quiz_page_actual') }}" class="btn btn-outline">
+                        🎯 返回练习
+                    </a>
+                    {% if wrong_answers and wrong_answers|length > 0 %}
+                    <a href="{{ url_for('retry_wrong_questions') }}" class="btn btn-secondary">
+                        🔄 重做错题
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 统计仪表板 -->
+            {% if statistics %}
+            <div class="stats-dashboard">
+                <div class="stat-card danger">
+                    <span class="stat-number">{{ statistics.total_wrong }}</span>
+                    <div class="stat-label">📝 总错题数</div>
+                </div>
+                <div class="stat-card warning">
+                    <span class="stat-number">{{ statistics.uncorrected_wrong }}</span>
+                    <div class="stat-label">❌ 未纠正错题</div>
+                </div>
+                <div class="stat-card success">
+                    <span class="stat-number">{{ "%.1f"|format(statistics.correction_rate) }}%</span>
+                    <div class="stat-label">✅ 纠正率</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">{{ statistics.total_wrong - statistics.uncorrected_wrong }}</span>
+                    <div class="stat-label">🎯 已掌握题目</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 错题列表 -->
+            {% if wrong_answers and wrong_answers|length > 0 %}
+                <div class="wrong-answers-list">
+                    <h3>❌ 错题列表 ({{ wrong_answers|length }} 道)</h3>
+                    
+                    {% for wrong_answer in wrong_answers %}
+                    <div class="wrong-answer-item{% if wrong_answer.is_corrected %} corrected{% endif %}" 
+                         data-question-id="{{ wrong_answer.question_id }}">
+                        
+                        <div class="wrong-answer-header">
+                            <div class="wrong-answer-meta">
+                                <span class="meta-tag source-tag">
+                                    📄 {{ wrong_answer.source_doc }}
+                                </span>
+                                <span class="meta-tag error-count-tag">
+                                    ❌ 错误 {{ wrong_answer.wrong_count }} 次
+                                </span>
+                                <span class="meta-tag date-tag">
+                                    🕒 {{ wrong_answer.last_wrong_at.strftime('%Y-%m-%d %H:%M') if wrong_answer.last_wrong_at else '未知时间' }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="wrong-question-text">
+                            {{ wrong_answer.question_text }}
+                        </div>
+                        
+                        <div class="answer-comparison">
+                            <div class="answer-box user-answer">
+                                <strong>❌ 你的答案:</strong><br>
+                                {{ wrong_answer.user_answer }}
+                            </div>
+                            <div class="answer-box correct-answer">
+                                <strong>✅ 正确答案:</strong><br>
+                                {{ wrong_answer.correct_answer }}
+                            </div>
+                        </div>
+                        
+                        <div class="wrong-answer-actions">
+                            {% if not wrong_answer.is_corrected %}
+                            <button class="btn btn-secondary mark-corrected-btn" 
+                                    data-question-id="{{ wrong_answer.question_id }}">
+                                ✅ 标记为已掌握
+                            </button>
+                            {% else %}
+                            <span class="btn btn-outline" disabled>
+                                ✓ 已掌握
+                            </span>
+                            {% endif %}
+                            
+                            <button class="btn btn-outline show-options-btn" 
+                                    data-options="{{ wrong_answer.question_options|tojson if wrong_answer.question_options else '{}' }}">
+                                👁️ 查看选项
+                            </button>
+                        </div>
+                        
+                        <!-- 选项显示区域，默认隐藏 -->
+                        <div class="options-display" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                            <strong>💡 题目选项:</strong>
+                            <div class="options-content"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎉</div>
+                    <h3>太棒了！您还没有错题</h3>
+                    <p>继续保持优秀的学习状态，争取不出现在这里哦！</p>
+                    <a href="{{ url_for('quiz_page_actual') }}" class="btn btn-primary">
+                        🚀 开始练习
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const LOGOUT_API_URL = "{{ url_for('api_logout') }}";
+        const MARK_CORRECTED_API_URL = "{{ url_for('mark_corrected') }}";
+        
+        // 登出功能
+        const logoutButton = document.getElementById('logoutBtnGlobal');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(LOGOUT_API_URL, { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+                    if (response.ok && result.redirect_url) {
+                        window.location.href = result.redirect_url;
+                    } else {
+                        alert(result.message || '登出失败');
+                    }
+                } catch (error) {
+                    console.error('登出请求出错:', error);
+                    alert('登出请求出错，请检查网络连接。');
+                }
+            });
+        }
+        
+        // 标记为已掌握功能
+        document.querySelectorAll('.mark-corrected-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const questionId = this.dataset.questionId;
+                
+                if (!confirm('确定要标记这道题为已掌握吗？标记后将不再在重做错题模式中出现。')) {
+                    return;
+                }
+                
+                try {
+                    this.disabled = true;
+                    this.textContent = '⏳ 处理中...';
+                    
+                    const response = await fetch(MARK_CORRECTED_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question_id: questionId })
+                    });
+                    
+                    const result = await response.json();
+                    if (response.ok) {
+                        // 标记该错题项为已纠正
+                        const wrongAnswerItem = this.closest('.wrong-answer-item');
+                        wrongAnswerItem.classList.add('corrected');
+                        
+                        // 更新按钮状态
+                        this.outerHTML = '<span class="btn btn-outline" disabled>✓ 已掌握</span>';
+                        
+                        // 显示成功消息
+                        const feedback = document.createElement('div');
+                        feedback.className = 'feedback correct';
+                        feedback.textContent = '✅ ' + result.message;
+                        feedback.style.marginTop = '1rem';
+                        wrongAnswerItem.appendChild(feedback);
+                        
+                        setTimeout(() => feedback.remove(), 3000);
+                        
+                    } else {
+                        this.disabled = false;
+                        this.textContent = '✅ 标记为已掌握';
+                        alert(result.message || '操作失败');
+                    }
+                } catch (error) {
+                    console.error('标记纠正失败:', error);
+                    this.disabled = false;
+                    this.textContent = '✅ 标记为已掌握';
+                    alert('操作失败，请检查网络连接。');
+                }
+            });
+        });
+        
+        // 查看选项功能
+        document.querySelectorAll('.show-options-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const optionsData = this.dataset.options;
+                const optionsDisplay = this.closest('.wrong-answer-item').querySelector('.options-display');
+                const optionsContent = optionsDisplay.querySelector('.options-content');
+                
+                if (optionsDisplay.style.display === 'none') {
+                    try {
+                        const options = JSON.parse(optionsData || '{}');
+                        let optionsHtml = '';
+                        
+                        if (Object.keys(options).length > 0) {
+                            Object.entries(options).forEach(([key, value]) => {
+                                optionsHtml += `<div style="margin: 8px 0; padding: 8px; background: var(--bg-primary); border-radius: var(--radius-sm); border-left: 3px solid var(--primary-color);"><strong>${key}:</strong> ${value}</div>`;
+                            });
+                        } else {
+                            optionsHtml = '<div style="color: var(--text-muted); font-style: italic;">暂无选项数据</div>';
+                        }
+                        
+                        optionsContent.innerHTML = optionsHtml;
+                        optionsDisplay.style.display = 'block';
+                        this.textContent = '🙈 隐藏选项';
+                        this.classList.remove('btn-outline');
+                        this.classList.add('btn-primary');
+                    } catch (error) {
+                        optionsContent.innerHTML = '<div style="color: var(--danger-color);">❌ 选项数据格式错误</div>';
+                        optionsDisplay.style.display = 'block';
+                        this.textContent = '🙈 隐藏选项';
+                    }
+                } else {
+                    optionsDisplay.style.display = 'none';
+                    this.textContent = '👁️ 查看选项';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline');
+                }
+            });
+        });
+        
+        // 页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.wrong-answer-item, .stat-card');
+            items.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

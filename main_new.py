@@ -333,7 +333,8 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "15_j2", "type": "judgment_as_single", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 2, "question": "2.两岸关系的政治基础是“一个中国”原则。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 26]
     {"id": "15_j3", "type": "judgment_as_single", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 3, "question": "3.香港是我国内地最大的外资来源地、对外投资最大目的地、对外贸易最大转口地，澳门是我国双向开放特别是与葡语国家经贸往来的重要平台。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 26]
     {"id": "15_j4", "type": "judgment_as_single", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 4, "question": "4.必须始终维护中央全面管治权，在任何时候，都不能将全面管治权和高度自治权对立起来；在任何情况下，特别行政区行使高度自治权都不得损害国家主权和全面管治权，更不能以高度自治权对抗全面管治权。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 26]
-    {"id": "15_j5", "type": "judgment_as_single", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 5, "question": "5.台湾问题因民族弱乱而产生，必将随着民族复兴而解决.台湾前途在于国家统一，台湾同胞福祉系于民族复兴。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 26, 27]
+    {"id": "15_j5", "type": "judgment_as_single", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 5, "question": "5.台湾问题因民族弱乱而产生，必将随着民族复兴而解决.台湾前途在于国家统一，台湾同胞福祉系于民族复兴。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 26]
+    {"id": "15_j6", "type": "judgment_as_single", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 6, "question": "6.党的十八大以来，党中央全面准确贯彻“一国两制”方针，牢牢掌握（   ）赋予的中央对香港、澳门全面管治权。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 26]
 
     # --- Document 16.doc (doc_order: 16) ---
     # Single Choice (单项选择题)
@@ -515,6 +516,119 @@ def api_logout():
     session.pop('user_id', None)
     session.pop('username', None)
     return jsonify({'message': '登出成功！', 'redirect_url': url_for('login_page')}), 200
+
+# --- 错题本功能路由 ---
+@app.route('/api/submit_answer', methods=['POST'])
+def submit_answer():
+    """提交答案API，记录错题"""
+    if 'user_id' not in session:
+        return jsonify({'message': '请先登录'}), 401
+    
+    try:
+        data = request.get_json()
+        user_id = session['user_id']
+        question_id = data.get('question_id')
+        user_answer = data.get('user_answer')
+        correct_answer = data.get('correct_answer')
+        question_data = data.get('question_data')
+        
+        if not all([question_id, user_answer, correct_answer, question_data]):
+            return jsonify({'message': '缺少必要参数'}), 400
+        
+        # 如果答错了，记录到错题本
+        if user_answer != correct_answer:
+            db_manager.add_wrong_answer(
+                user_id=user_id,
+                question_id=question_id,
+                question_text=question_data.get('question', ''),
+                question_type=question_data.get('type', ''),
+                correct_answer=correct_answer,
+                user_answer=user_answer,
+                question_options=question_data.get('options', {}),
+                source_doc=question_data.get('source_doc', '')
+            )
+            return jsonify({'correct': False, 'message': '答案错误，已记录到错题本'}), 200
+        else:
+            # 答对了，检查是否需要标记错题为已纠正
+            db_manager.mark_question_corrected(user_id, question_id)
+            return jsonify({'correct': True, 'message': '答案正确！'}), 200
+            
+    except Exception as e:
+        logger.error(f"提交答案失败: {e}")
+        return jsonify({'message': '提交失败，请稍后重试'}), 500
+
+@app.route('/wrong_answers')
+def wrong_answers_page():
+    """错题本页面"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_page'))
+    
+    try:
+        user_id = session['user_id']
+        wrong_answers = db_manager.get_wrong_answers(user_id)
+        stats = db_manager.get_wrong_answer_stats(user_id)
+        
+        return render_template('wrong_answers.html', 
+                             username=session.get('username'),
+                             wrong_answers=wrong_answers,
+                             stats=stats)
+    except Exception as e:
+        logger.error(f"获取错题本失败: {e}")
+        return redirect(url_for('quiz_page_actual'))
+
+@app.route('/retry_wrong_questions')
+def retry_wrong_questions():
+    """重做错题"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_page'))
+    
+    try:
+        user_id = session['user_id']
+        wrong_answers = db_manager.get_wrong_answers(user_id)
+        
+        # 构建错题的question数据格式
+        wrong_questions = []
+        for wa in wrong_answers:
+            import json
+            question_data = {
+                'id': wa['question_id'] if 'question_id' in wa else wa[2],
+                'type': wa['question_type'] if 'question_type' in wa else wa[4],
+                'question': wa['question_text'] if 'question_text' in wa else wa[3],
+                'options': json.loads(wa['question_options'] if 'question_options' in wa else wa[7]) if (wa['question_options'] if 'question_options' in wa else wa[7]) else {},
+                'answer': wa['correct_answer'] if 'correct_answer' in wa else wa[5],
+                'source_doc': wa['source_doc'] if 'source_doc' in wa else wa[8]
+            }
+            wrong_questions.append(question_data)
+        
+        return render_template('quiz_website.html', 
+                             username=session.get('username'),
+                             all_questions_from_server=wrong_questions,
+                             mode='retry')
+    except Exception as e:
+        logger.error(f"重做错题失败: {e}")
+        return redirect(url_for('wrong_answers_page'))
+
+@app.route('/api/mark_corrected', methods=['POST'])
+def mark_corrected():
+    """标记错题为已纠正"""
+    if 'user_id' not in session:
+        return jsonify({'message': '请先登录'}), 401
+    
+    try:
+        data = request.get_json()
+        question_id = data.get('question_id')
+        
+        if not question_id:
+            return jsonify({'message': '缺少题目ID'}), 400
+        
+        user_id = session['user_id']
+        db_manager.mark_question_corrected(user_id, question_id)
+        
+        return jsonify({'message': '已标记为纠正'}), 200
+        
+    except Exception as e:
+        logger.error(f"标记纠正失败: {e}")
+        return jsonify({'message': '操作失败，请稍后重试'}), 500
 
 @app.route('/health', methods=['GET'])
 def health_check():

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 我的错题本 - 智能学习系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="user-info-bar">
+            <div>
+                {% if username %}
+                    <span>欢迎您, <strong>{{ username }}</strong>! 📚</span>
+                {% else %}
+                    <span>欢迎, 访客! 请先<a href="{{ url_for('login_page') }}" style="color: #60a5fa; text-decoration: underline;">登录</a> 🔐</span>
+                {% endif %}
+            </div>
+            <div>
+                {% if username %}
+                    <button id="logoutBtnGlobal" class="btn-danger">退出登录</button> 
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="container-box wrong-answers-container">
+            <h1>📚 我的错题本</h1>
+            <p class="subtitle">智能错题管理，助力高效学习</p>
+            
+            <!-- 导航栏 -->
+            <div class="navigation-bar">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <a href="{{ url_for('quiz_page_actual') }}" class="btn btn-outline">
+                        🎯 返回练习
+                    </a>
+                    {% if wrong_answers and wrong_answers|length > 0 %}
+                    <a href="{{ url_for('retry_wrong_questions') }}" class="btn btn-secondary">
+                        🔄 重做错题
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            margin-bottom: 15px;
+        }
+        
+        .answer-box {
+            padding: 12px;
+            border-radius: 6px;
+            border: 2px solid;
+        }
+        
+        .correct-answer {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .wrong-answer {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .answer-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .stats-container {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .navigation-bar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-link {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: #e9ecef;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .answer-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .wrong-answer-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .navigation-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="user-info-bar">
+        <div>
+            {% if username %}
+                <span>欢迎您, <strong>{{ username }}</strong>!</span>
+            {% else %}
+                <span>欢迎, 访客!</span>
+            {% endif %}
+        </div>
+        <div>
+            {% if username %}
+                <button id="logoutBtnGlobal">登出</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container-box">
+        <h1>📚 我的错题本</h1>
+        
+        <div class="navigation-bar">
+            <div class="nav-links">
+                <a href="{{ url_for('quiz_page_actual') }}" class="nav-link">🏠 返回练习</a>
+                {% if wrong_answers %}
+                <a href="{{ url_for('retry_wrong_questions') }}" class="nav-link">🔄 重做错题</a>
+                {% endif %}
+            </div>
+            <div>
+                <span class="question-meta">错题本管理</span>
+            </div>
+        </div>
+
+        {% if stats %}
+        <div class="stats-container">
+            <h3>📊 错题统计</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_wrong }}</div>
+                    <div class="stat-label">总错题数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.uncorrected_wrong }}</div>
+                    <div class="stat-label">未纠正错题</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_wrong - stats.uncorrected_wrong }}</div>
+                    <div class="stat-label">已纠正错题</div>
+                </div>
+                {% if stats.total_wrong > 0 %}
+                <div class="stat-item">
+                    <div class="stat-number">{{ "%.1f"|format((stats.total_wrong - stats.uncorrected_wrong) / stats.total_wrong * 100) }}%</div>
+                    <div class="stat-label">纠正率</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if wrong_answers %}
+            <h3>❌ 错题列表 ({{ wrong_answers|length }} 道)</h3>
+            
+            {% for wrong_answer in wrong_answers %}
+            <div class="wrong-answer-item" data-question-id="{{ wrong_answer.question_id if wrong_answer.question_id else wrong_answer[2] }}">
+                <div class="wrong-answer-header">
+                    <div class="question-meta">
+                        <strong>来源:</strong> {{ wrong_answer.source_doc if wrong_answer.source_doc else wrong_answer[8] }} |
+                        <strong>类型:</strong> 
+                        {% set qtype = wrong_answer.question_type if wrong_answer.question_type else wrong_answer[4] %}
+                        {% if qtype == 'single' %}单选题
+                        {% elif qtype == 'multiple' %}多选题  
+                        {% elif qtype == 'judgment_as_single' %}判断题
+                        {% else %}{{ qtype }}
+                        {% endif %} |
+                        <strong>最后错误时间:</strong> {{ wrong_answer.last_wrong_at if wrong_answer.last_wrong_at else wrong_answer[10] }}
+                    </div>
+                    <div class="wrong-count">
+                        错误 {{ wrong_answer.wrong_count if wrong_answer.wrong_count else wrong_answer[9] }} 次
+                    </div>
+                </div>
+                
+                <div class="question-text">
+                    {{ wrong_answer.question_text if wrong_answer.question_text else wrong_answer[3] }}
+                </div>
+                
+                <div class="answer-comparison">
+                    <div class="answer-box wrong-answer">
+                        <div class="answer-label">❌ 你的答案:</div>
+                        <div>{{ wrong_answer.user_answer if wrong_answer.user_answer else wrong_answer[6] }}</div>
+                    </div>
+                    <div class="answer-box correct-answer">
+                        <div class="answer-label">✅ 正确答案:</div>
+                        <div>{{ wrong_answer.correct_answer if wrong_answer.correct_answer else wrong_answer[5] }}</div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-success mark-corrected-btn" 
+                            data-question-id="{{ wrong_answer.question_id if wrong_answer.question_id else wrong_answer[2] }}">
+                        ✓ 标记为已掌握
+                    </button>
+                    <button class="btn btn-primary show-options-btn" 
+                            data-options="{{ wrong_answer.question_options if wrong_answer.question_options else wrong_answer[7] }}">
+                        👁️ 查看选项
+                    </button>
+                </div>
+                
+                <!-- 选项显示区域，默认隐藏 -->
+                <div class="options-display" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+                    <strong>题目选项:</strong>
+                    <div class="options-content"></div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🎉</div>
+                <h3>太棒了！您还没有错题</h3>
+                <p>继续保持，争取不出现在这里哦！</p>
+                <a href="{{ url_for('quiz_page_actual') }}" class="btn btn-primary">开始练习</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const LOGOUT_API_URL = "{{ url_for('api_logout') }}";
+        const MARK_CORRECTED_API_URL = "{{ url_for('mark_corrected') }}";
+        
+        // 登出功能
+        const logoutButton = document.getElementById('logoutBtnGlobal');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(LOGOUT_API_URL, { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+                    if (response.ok && result.redirect_url) {
+                        window.location.href = result.redirect_url;
+                    } else {
+                        alert(result.message || '登出失败');
+                    }
+                } catch (error) {
+                    console.error('登出请求出错:', error);
+                    alert('登出请求出错，请检查网络连接。');
+                }
+            });
+        }
+        
+        // 标记为已掌握功能
+        document.querySelectorAll('.mark-corrected-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const questionId = this.dataset.questionId;
+                
+                if (!confirm('确定要标记这道题为已掌握吗？标记后将不再显示在错题本中。')) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(MARK_CORRECTED_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question_id: questionId })
+                    });
+                    
+                    const result = await response.json();
+                    if (response.ok) {
+                        // 移除该错题项
+                        const wrongAnswerItem = document.querySelector(`[data-question-id="${questionId}"]`);
+                        wrongAnswerItem.style.transition = 'opacity 0.3s';
+                        wrongAnswerItem.style.opacity = '0';
+                        setTimeout(() => {
+                            wrongAnswerItem.remove();
+                            // 检查是否还有错题
+                            const remainingItems = document.querySelectorAll('.wrong-answer-item');
+                            if (remainingItems.length === 0) {
+                                location.reload(); // 重新加载页面显示空状态
+                            }
+                        }, 300);
+                        alert(result.message);
+                    } else {
+                        alert(result.message || '操作失败');
+                    }
+                } catch (error) {
+                    console.error('标记纠正失败:', error);
+                    alert('操作失败，请检查网络连接。');
+                }
+            });
+        });
+        
+        // 查看选项功能
+        document.querySelectorAll('.show-options-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const optionsData = this.dataset.options;
+                const optionsDisplay = this.closest('.wrong-answer-item').querySelector('.options-display');
+                const optionsContent = optionsDisplay.querySelector('.options-content');
+                
+                if (optionsDisplay.style.display === 'none') {
+                    try {
+                        const options = JSON.parse(optionsData || '{}');
+                        let optionsHtml = '';
+                        
+                        Object.entries(options).forEach(([key, value]) => {
+                            optionsHtml += `<div style="margin: 5px 0;"><strong>${key}:</strong> ${value}</div>`;
+                        });
+                        
+                        optionsContent.innerHTML = optionsHtml || '暂无选项数据';
+                        optionsDisplay.style.display = 'block';
+                        this.textContent = '🙈 隐藏选项';
+                    } catch (error) {
+                        optionsContent.innerHTML = '选项数据格式错误';
+                        optionsDisplay.style.display = 'block';
+                        this.textContent = '🙈 隐藏选项';
+                    }
+                } else {
+                    optionsDisplay.style.display = 'none';
+                    this.textContent = '👁️ 查看选项';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

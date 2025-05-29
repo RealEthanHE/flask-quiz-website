@@ -2,28 +2,44 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>用户注册</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📝 用户注册 - 智能学习系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="auth-container"> <h2>创建账户</h2>
-        <form id="registerForm">
-            <div>
-                <label for="username">用户名:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div>
-                <label for="password">密码:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <div>
-                <label for="confirm_password">确认密码:</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
-            </div>
-            <button type="submit">注册</button>
-        </form>
-        <p>已有账户? <a href="{{ url_for('login_page') }}">点此登录</a></p>
-        <div id="message" class="message-feedback"></div>
+    <div class="main-wrapper">
+        <div class="container-box auth-container">
+            <h1>📝 创建新账户</h1>
+            <p class="subtitle">加入智能学习系统，开启高效学习之旅</p>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">👤 用户名</label>
+                    <input type="text" id="username" name="username" class="form-input" required 
+                           placeholder="请输入用户名（3-20个字符）">
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">🔒 密码</label>
+                    <input type="password" id="password" name="password" class="form-input" required 
+                           placeholder="请输入密码（至少6个字符）">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">🔐 确认密码</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-input" required 
+                           placeholder="请再次输入密码">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    🎯 创建账户
+                </button>
+            </form>
+            
+            <p style="text-align: center; margin-top: 2rem;">
+                已有账户? <a href="{{ url_for('login_page') }}">点此登录 →</a>
+            </p>
+            
+            <div id="message" class="feedback" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
 
 <script>
         document.getElementById('registerForm').addEventListener('submit', async function(event) {

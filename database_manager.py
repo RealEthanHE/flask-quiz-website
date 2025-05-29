@@ -47,8 +47,7 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         try:
-            if self.is_postgres:
-                # PostgreSQL语法
+            if self.is_postgres:                # PostgreSQL语法
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS users (
                         id SERIAL PRIMARY KEY,
@@ -67,8 +66,26 @@ class DatabaseManager:
                         completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 ''')
-            else:
-                # SQLite语法
+                
+                # 错题记录表
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS wrong_answers (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER REFERENCES users(id),
+                        question_id VARCHAR(50) NOT NULL,
+                        question_text TEXT NOT NULL,
+                        question_type VARCHAR(20) NOT NULL,
+                        correct_answer TEXT NOT NULL,
+                        user_answer TEXT NOT NULL,
+                        question_options JSON,
+                        source_doc VARCHAR(50),
+                        wrong_count INTEGER DEFAULT 1,
+                        first_wrong_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_wrong_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        is_corrected BOOLEAN DEFAULT FALSE
+                    )
+                ''')
+            else:                # SQLite语法
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,6 +102,26 @@ class DatabaseManager:
                         score INTEGER,
                         total_questions INTEGER,
                         completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users (id)
+                    )
+                ''')
+                
+                # 错题记录表
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS wrong_answers (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER,
+                        question_id TEXT NOT NULL,
+                        question_text TEXT NOT NULL,
+                        question_type TEXT NOT NULL,
+                        correct_answer TEXT NOT NULL,
+                        user_answer TEXT NOT NULL,
+                        question_options TEXT,
+                        source_doc TEXT,
+                        wrong_count INTEGER DEFAULT 1,
+                        first_wrong_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_wrong_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        is_corrected INTEGER DEFAULT 0,
                         FOREIGN KEY (user_id) REFERENCES users (id)
                     )
                 ''')
@@ -129,6 +166,88 @@ class DatabaseManager:
         finally:
             cursor.close()
             conn.close()
+    
+    def add_wrong_answer(self, user_id, question_id, question_text, question_type, 
+                        correct_answer, user_answer, question_options, source_doc):
+        """添加错题记录"""
+        # 检查是否已存在该错题
+        existing = self.execute_query(
+            "SELECT id, wrong_count FROM wrong_answers WHERE user_id = ? AND question_id = ?",
+            (user_id, question_id),
+            fetch_one=True
+        )
+        
+        if existing:
+            # 更新错题次数
+            query = "UPDATE wrong_answers SET wrong_count = wrong_count + 1, last_wrong_at = CURRENT_TIMESTAMP WHERE id = ?"
+            params = (existing['id'],) if self.is_postgres else (existing[0],)
+            self.execute_query(query, params)
+        else:
+            # 添加新错题
+            import json
+            options_str = json.dumps(question_options) if question_options else None
+            
+            if self.is_postgres:
+                query = '''INSERT INTO wrong_answers 
+                          (user_id, question_id, question_text, question_type, correct_answer, 
+                           user_answer, question_options, source_doc) 
+                          VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'''
+            else:
+                query = '''INSERT INTO wrong_answers 
+                          (user_id, question_id, question_text, question_type, correct_answer, 
+                           user_answer, question_options, source_doc) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
+            
+            self.execute_query(query, (user_id, question_id, question_text, question_type, 
+                                     correct_answer, user_answer, options_str, source_doc))
+    
+    def get_wrong_answers(self, user_id, limit=None):
+        """获取用户的错题列表"""
+        query = '''SELECT * FROM wrong_answers 
+                   WHERE user_id = ? AND is_corrected = ? 
+                   ORDER BY last_wrong_at DESC'''
+        params = (user_id, False) if self.is_postgres else (user_id, 0)
+        
+        if limit:
+            query += f" LIMIT {limit}"
+        
+        return self.execute_query(query, params, fetch_all=True)
+    
+    def mark_question_corrected(self, user_id, question_id):
+        """标记错题已纠正"""
+        if self.is_postgres:
+            query = "UPDATE wrong_answers SET is_corrected = TRUE WHERE user_id = %s AND question_id = %s"
+        else:
+            query = "UPDATE wrong_answers SET is_corrected = 1 WHERE user_id = ? AND question_id = ?"
+        
+        self.execute_query(query, (user_id, question_id))
+    
+    def get_wrong_answer_stats(self, user_id):
+        """获取错题统计"""
+        # 总错题数
+        total_query = "SELECT COUNT(*) as total FROM wrong_answers WHERE user_id = ?"
+        total_result = self.execute_query(total_query, (user_id,), fetch_one=True)
+        total_wrong = total_result['total'] if self.is_postgres else total_result[0]
+        
+        # 未纠正错题数
+        uncorrected_query = "SELECT COUNT(*) as uncorrected FROM wrong_answers WHERE user_id = ? AND is_corrected = ?"
+        uncorrected_params = (user_id, False) if self.is_postgres else (user_id, 0)
+        uncorrected_result = self.execute_query(uncorrected_query, uncorrected_params, fetch_one=True)
+        uncorrected_wrong = uncorrected_result['uncorrected'] if self.is_postgres else uncorrected_result[0]
+        
+        # 按题型统计
+        type_query = '''SELECT question_type, COUNT(*) as count 
+                       FROM wrong_answers 
+                       WHERE user_id = ? AND is_corrected = ?
+                       GROUP BY question_type'''
+        type_params = (user_id, False) if self.is_postgres else (user_id, 0)
+        type_results = self.execute_query(type_query, type_params, fetch_all=True)
+        
+        return {
+            'total_wrong': total_wrong,
+            'uncorrected_wrong': uncorrected_wrong,
+            'by_type': type_results
+        }
 
 # 全局数据库管理器实例
 db_manager = DatabaseManager()

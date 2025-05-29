@@ -9,24 +9,46 @@
         /* 这里可以保留一些页面特有的、或者您希望覆盖的样式 */
     </style>
 </head>
-<body>
-    <div class="user-info-bar">
-        <div>
-            {% if username %}
-                <span>欢迎您, <strong>{{ username }}</strong>!</span>
-            {% else %}
-                <span>欢迎, 访客! (请先<a href="{{ url_for('login_page') }}" style="color: #fff; text-decoration: underline;">登录</a>)</span>
-            {% endif %}
+<body>    <div class="main-wrapper">
+        <div class="user-info-bar">
+            <div>
+                {% if username %}
+                    <span>欢迎您, <strong>{{ username }}</strong>! 🎯</span>
+                {% else %}
+                    <span>欢迎, 访客! 请先<a href="{{ url_for('login_page') }}" style="color: #60a5fa; text-decoration: underline;">登录</a> 🔐</span>
+                {% endif %}
+            </div>
+            <div>
+                {% if username %}
+                    <button id="logoutBtnGlobal" class="btn-danger">退出登录</button> 
+                {% endif %}
+            </div>
         </div>
-        <div>
-            {% if username %}
-                <button id="logoutBtnGlobal">登出</button> 
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="container-box">
-        <h1>选择题在线练习</h1>
+        
+        <div class="container-box">
+            <h1>🚀 智能选择题练习系统</h1>
+            <p class="subtitle">基于AI的个性化学习体验</p>
+            
+            <!-- 导航栏 -->
+            <div class="navigation-bar">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <a href="{{ url_for('wrong_answers_page') }}" class="btn btn-outline">
+                        📚 我的错题本
+                    </a>
+                    {% if mode == 'retry' %}
+                    <span class="mode-indicator mode-retry">🔄 错题重做模式</span>
+                    {% else %}
+                    <span class="mode-indicator mode-normal">📝 正常练习模式</span>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if mode == 'retry' %}
+                    <a href="{{ url_for('quiz_page_actual') }}" class="btn btn-secondary">
+                        ← 返回正常练习
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
         
         <div class="question-header">
             <span id="questionSource" class="question-source">来源: --</span>
@@ -35,20 +57,22 @@
 
         <div id="questionText" class="question-text">题目加载中...</div>
         <div id="optionsContainer" class="options"></div> 
-        <div id="feedbackArea" class="feedback"></div>
-
-        <div class="button-container">
-            <button id="submitBtn">提交答案</button>
+        <div id="feedbackArea" class="feedback"></div>            <div class="button-container">
+                <button id="submitBtn" class="btn btn-primary">✅ 提交答案</button>
+            </div>
+            
+            <div id="resultsArea" class="results-summary" style="display:none;">
+                <h3>📊 本组答题结果</h3>
+                <p id="scoreText"></p>
+                <div id="incorrectReview"></div>
+                <button id="nextSetBtn" class="btn btn-secondary" style="display:none; margin-top:15px;">
+                    🎯 开始下一组 / 查看总结
+                </button>
+            </div>
         </div>
-        
-        <div id="resultsArea" class="results-summary" style="display:none;">
-            <h3>本组答题结果</h3>
-            <p id="scoreText"></p>
-            <div id="incorrectReview"></div>
-            <button id="nextSetBtn" style="display:none; margin-top:15px;">开始下一组 / 查看总结</button>
-        </div>    </div>
 
-    <div id="overallProgress" class="progress-info">总进度: 0/0</div>
+        <div id="overallProgress" class="progress-info">📈 总进度: 0/0</div>
+    </div>
 
     <!-- Server data passed to client -->
     <script type="application/json" id="server-data">
@@ -221,9 +245,7 @@
                 });
             }
             updateOverallProgress();
-        }
-
-        submitBtnEl.addEventListener('click', function() {
+        }        submitBtnEl.addEventListener('click', async function() {
             if (currentQuestionInSetIndex >= currentSetQuestions.length) return;
 
             const qData = currentSetQuestions[currentQuestionInSetIndex];
@@ -252,8 +274,29 @@
             }
 
             const correctAnswer = qData.answer.split('').sort().join(''); 
+            const isCorrect = userAnswer === correctAnswer;
             
-            if (userAnswer === correctAnswer) {
+            // 提交答案到后端
+            try {
+                const response = await fetch("{{ url_for('submit_answer') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question_id: qData.id,
+                        user_answer: userAnswer,
+                        correct_answer: qData.answer, // 使用原始答案，不排序
+                        question_data: qData
+                    })
+                });
+                
+                if (!response.ok) {
+                    console.error('提交答案失败:', response.status);
+                }
+            } catch (error) {
+                console.error('提交答案出错:', error);
+            }
+            
+            if (isCorrect) {
                 scoreForCurrentSet++;
                 feedbackAreaEl.textContent = "回答正确！";
                 feedbackAreaEl.className = 'feedback correct';

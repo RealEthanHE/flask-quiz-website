@@ -1,9 +1,9 @@
 from flask import Flask, render_template, url_for, request, jsonify, session, redirect # 导入 session 和 redirect
 from werkzeug.security import generate_password_hash, check_password_hash # 导入密码哈希工具
-import sqlite3
 import os
 import json
 import logging
+from database_manager import db_manager
 
 # 配置日志
 logging.basicConfig(level=logging.DEBUG)
@@ -13,20 +13,6 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 # 使用环境变量设置密钥，生产环境更安全
 app.secret_key = os.environ.get('SECRET_KEY', 'your_very_secret_key_for_session_management')
-
-# 数据库配置 - 适配生产环境
-if os.environ.get('RENDER'):
-    # Render环境：使用项目目录下的数据库（持久化存储）
-    DATABASE = os.path.join(os.getcwd(), 'database.db')
-    logger.info(f"Render环境，数据库路径: {DATABASE}")
-elif os.environ.get('RAILWAY_ENVIRONMENT'):
-    # Railway环境：使用项目目录下的数据库
-    DATABASE = os.path.join(os.getcwd(), 'database.db')
-    logger.info(f"Railway环境，数据库路径: {DATABASE}")
-else:
-    # 开发环境使用本地文件
-    DATABASE = 'database.db'
-    logger.info(f"开发环境，数据库路径: {DATABASE}")
 
 # 获取端口配置，适配云平台部署
 PORT = int(os.environ.get('PORT', 5000))
