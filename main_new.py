@@ -1,5 +1,6 @@
 from flask import Flask, render_template, url_for, request, jsonify, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 import os
 import json
 import logging
@@ -52,6 +53,314 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "导论_j6", "type": "judgment_as_single", "source_doc": "导论.doc", "doc_order": 0, "q_num_in_doc": 6, "question": "6.我们党的历史，就是一部不断推进马克思主义中国化的历史，就是一部不断推进理论创新、进行理论创造的历史。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 55]
     {"id": "导论_j7", "type": "judgment_as_single", "source_doc": "导论.doc", "doc_order": 0, "q_num_in_doc": 7, "question": "7.习近平新时代中国特色社会主义思想系统全面、逻辑严密、博大精深。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 55]
     {"id": "导论_j8", "type": "judgment_as_single", "source_doc": "导论.doc", "doc_order": 0, "q_num_in_doc": 8, "question": "8.“三个代表”重要思想是当代中国马克思主义、二十一世纪马克思主义，是中华文化和中国精神的时代精华，实现了马克思主义中国化时代化新的飞跃。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 55]
+    # --- Document 01.doc (doc_order: 1) ---
+    # Single Choice (单项选择题)
+    {"id": "01_s1", "type": "single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 1, "question": "1.中国特色社会主义道路是（ ）。", "options": {"A": "实现途径", "B": "行动指南", "C": "根本保障", "D": "精神力量"}, "answer": "A"}, #
+    {"id": "01_s2", "type": "single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 2, "question": "2.（ ）宣布，中国特色社会主义进入了新时代，这是我国发展新的历史方位。", "options": {"A": "党的十八大", "B": "党的二十大", "C": "党的十七大", "D": "党的十九大"}, "answer": "D"}, #
+    {"id": "01_s3", "type": "single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 3, "question": "3. 习近平总书记在十九大报告中指出，中国特色社会主义进入新时代，我国社会主要矛盾（ ）。", "options": {"A":"已经转化为人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾", "B":"仍然是无产阶级同资产阶级之间的矛盾", "C":"官僚资本同民族资本之间的矛盾", "D":"是人民日益增长的物质文化需要同落后的社会生产之间的矛盾。"}, "answer": "A"}, #
+    {"id": "01_s4", "type": "single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 4, "question": "4.（ ）是坚持和发展中国特色社会主义的行动指南。", "options": {"A": "党的基本路线", "B":"党的基本理论", "C":"党的基本方略", "D":"党的基本政策"}, "answer": "B"}, #
+    {"id": "01_s5", "type": "single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 5, "question": "5.中国共产党为什么能，中国特色社会主义为什么好，归根到底是（）。", "options": {"A":"马克思主义行，是中国化时代化的马克思主义行", "B":"中国共产党能", "C":"中国特色社会主义好", "D":"靠坚持四项基本原则，不犯错误"}, "answer": "A"}, #
+    {"id": "01_s6", "type": "single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 6, "question": "6.（）是当代中国发展进步的根本制度保障，具有明显制度优势。", "options": {"A":"中国特色社会主义制度", "B":"中国特色社会主义经济制度", "C":"中国特色社会主义理论体系", "D":"中国特色社会主义道路"}, "answer": "A"}, #
+    # Multiple Choice (多项选择题) from 01.doc
+    {"id": "01_m1", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 1, "question": "1.中国特色社会主义是（  ）。", "options": {"A":"在改革开放40多年的伟大实践中得来的", "B":"在新中国成立70多年的持续探索中得来的", "C":"在中国共产党领导人民进行伟大社会革命100多年的实践中得来的", "D":"在近代以来中华民族由衰到盛180多年的历史进程中得来的", "E":"在世界社会主义500多年波澜壮阔的发展历程中得来的", "F":"在对中华文明5000多年的传承发展中得来的。"}, "answer": "ABCDEF"}, #
+    {"id": "01_m2", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 2, "question": "2.中国特色社会主义坚持科学社会主义基本原则，并赋予其鲜明的中国特色,包括（ ）。", "options": {"A":"坚持人民代表大会制度的根本政治制度", "B":"中国共产党领导的多党合作和政治协商制度", "C":"坚持公有制为主体多种所有制经济共同发展", "D":"坚持按劳分配为主体多种分配方式并存", "E":"坚持社会主义市场经济体制"}, "answer": "ABCDE"}, # # Corrected option E to remove leading space
+    {"id": "01_m3", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 3, "question": "3.改革开放以来，我们取得一切成绩和进步的根本原因，就是(   ).", "options": {"A":"开辟了中国特色社会主义道路", "B":"形成了中国特色社会主义理论体系", "C":"确立了中国特色社会主义制度", "D":"发展了中国特色社会主义文化。", "E":"建设社会主义生态文明"}, "answer": "ABCD"}, #
+    {"id": "01_m4", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 4, "question": "4.中国特色社会主义制度的根本制度有（  ）。", "options": {"A":"党的领导制度", "B":"人民代表大会制度", "C":"马克思主义指导制度", "D":"基层群众自治制度"}, "answer": "ABC"}, #
+    {"id": "01_m5", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 5, "question": "5.中国特色社会主义进入了新时代的判断，是（ ）。", "options": {"A":"基于我国发展进入新阶段的伟大成就", "B":"基于社会主要矛盾发生新变化", "C":"基于党的新的奋斗目标", "D":"基于我国面临新的国际环境。"}, "answer": "ABCD"}, #
+    {"id": "01_m6", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 6, "question": "6.中国特色社会主义新时代，（   ）。", "options": {"A":"是承前启后、继往开来，在新的历史条件下继续夺取中国特色社会主义伟大胜利的时代。", "B":"是决胜全面建成小康社会、进而全面建设社会主义现代化强国的时代。", "C":"是全国各族人民团结奋斗、不断创造美好生活、逐步实现全体人民共同富裕的时代.", "D":"全体中华儿女勠力同心、奋力实现中华民族伟大复兴中国梦的时代。"}, "answer": "ABCD"}, #
+    {"id": "01_m7", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 7, "question": "7.党的十九大概括中国特色社会主义进入新时代的重大意义,这就是：", "options": {"A":"意味着中华民族迎来了从站起来、富起来到强起来的伟大飞跃，迎来了中华民族伟大复兴的光明前景。", "B":"意味着科学社会主义在中国焕发出强大生机活力，在世界上高高举起了中国特色社会主义伟大旗帜", "C":"意味着中国特色社会主义道路、理论、制度、文化不断发展，拓展了发展中国家实现现代化的途径", "D":"意味着中国即将建成社会主义现代化强国，全体人民过上共同富裕的生活。"}, "answer": "ABC"}, #
+    {"id": "01_m8", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 8, "question": "8. 我国社会主要矛盾的变化（   ）。", "options": {"A":"没有改变我们对我国社会主义所处历史阶段的判断", "B":"我国仍处于并将长期处于社会主义初级阶段的基本国情没有变", "C":"我国是世界最大发展中国家的国际地位没有变", "D":"以上都正确"}, "answer": "ABCD"}, #
+    {"id": "01_m9", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 9, "question": "9.中国特色社会主义制度，（）。", "options": {"A":"坚持把根本制度、基本制度、重要制度以及各方面体制机制等具体制度有机结合起来", "B":"坚持把国家层面民主制度同基层民主制度有机结合起来", "C":"坚持把党的领导、人民当家作主、依法治国有机结合起来", "D":"既坚持了社会主义的根本性质，又借鉴了古今中外制度建设的有益成果。"}, "answer": "ABCD"}, #
+    {"id": "01_m10", "type": "multiple", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 10, "question": "10.中国特色社会主义文化，（）。", "options": {"A":"是激励全党全国各族人民奋勇前进的强大精神力量", "B":"它源自于5000多年文明历史的中华优秀传统文化", "C":"熔铸于党领导人民在革命、建设、改革中创造的革命文化和社会主义先进文化", "D":"植根于中国特色社会主义伟大实践"}, "answer": "ABCD"}, #
+    # Judgment (判断题) from 01.doc
+    {"id": "01_j1", "type": "judgment_as_single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 1, "question": "1.中国特色社会主义具有深厚的历史渊源和广泛的现实基础，是实现中华民族伟大复兴的正确道路。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "01_j2", "type": "judgment_as_single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 2, "question": "2.坚持和发展中国特色社会主义是一篇大文章，毛泽东同志为它确定了基本思路和基本原则。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, #
+    {"id": "01_j3", "type": "judgment_as_single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 3, "question": "3.中国特色社会主义，既坚持了科学社会主义基本原则，又根据时代条件赋予其鲜明的中国特色。这就是说，中国特色社会主义是社会主义，不是别的什么主义。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "01_j4", "type": "judgment_as_single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 4, "question": "4.中国特色社会主义写出了科学社会主义的“新版本”。中国特色社会主义不是简单延续我国历史文化的母版，不是简单套用马克思主义经典作家设想的模板，不是其他国家社会主义实践的再版，也不是国外现代化发展的翻版。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "01_j5", "type": "judgment_as_single", "source_doc": "01.doc", "doc_order": 1, "q_num_in_doc": 5, "question": "5.中国特色社会主义道路是实现途径，理论体系是行动指南，制度是根本保障，文化是精神力量，四者统一于中国特色社会主义伟大实践。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+
+    # --- Document 02.doc (doc_order: 2) ---
+    # Single Choice (单项选择题)
+    {"id": "02_s1", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 1, "question": "1. 一百年来，中国共产党团结带领中国人民进行的一切奋斗、一切牺牲、一切创造，归结起来就是一个主题（ ）。", "options": {"A":"建立新中国", "B":"追求共同富裕", "C":"实现中华民族伟大复兴", "D":"实现人民对美好生活的向往"}, "answer": "C"}, #
+    {"id": "02_s2", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 2, "question": "2. 中国梦归根到底是（  ），必须紧紧依靠人民来实现，必须不断为人民造福。", "options": {"A":"国家的梦", "B":"人民的梦", "C":"民族的梦", "D":"世界的梦"}, "answer": "B"}, #
+    {"id": "02_s3", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 3, "question": "3.中华民族伟大复兴的中国梦是（   ）相统一的梦。", "options": {"A":"国家情怀、民族情怀、人民情怀", "B":"国家情怀、民族情怀、社会情怀", "C":"民族情怀、世界情怀、人民情怀", "D":"国家情怀、家庭情怀、人民情怀"}, "answer": "A"}, #
+    {"id": "02_s4", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 4, "question": "4. 实现中国梦必须走中国道路，这就是（   ）。", "options": {"A":"中华民族大团结之路", "B":"社会发展之路", "C":"人民民主专政之路", "D":"中国特色社会主义道路"}, "answer": "D"}, #
+    {"id": "02_s5", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 5, "question": "5. 实现中国梦必须凝聚中国力量，这就是（   ）。", "options": {"A":"各族人民大团结的力量", "B":"中国共产党的领导力量", "C":"中高速增长的经济力量。", "D":"保障有力的军事力量"}, "answer": "A"}, #
+    {"id": "02_s6", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 6, "question": "6.(   )首次把“小康”作为经济建设总的奋斗目标。", "options": {"A":"党的十七大", "B":"党的十五大", "C":"党的十二大", "D":"党的十一届三中全会"}, "answer": "C"}, #
+    {"id": "02_s7", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 7, "question": "7.（ ）针对当时小康低水平、不全面、发展很不平衡的实际，提出全面建设小康社会目标", "options": {"A":"党的十四大", "B":"党的十六大", "C":"党的十五大", "D":"党的十七大"}, "answer": "B"}, #
+    {"id": "02_s8", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 8, "question": "8. 从全面建设社会主义现代化国家进程的阶段安排看来，到2035年，我国将（  ）。", "options": {"A":"全面建成小康社会", "B":"实现中华民族伟大复兴的中国梦", "C":"把我国建设成为富强美丽文明和谐的社会现代化强国。", "D":"基本实现社会主义现代化"}, "answer": "D"}, #
+    {"id": "02_s9", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 9, "question": "9.党的十九大提出，到（   ）各方面制度更加完善，国家治理体系和治理能力现代化基本实现。", "options": {"A":"2035年", "B":"2030年", "C":"2025年", "D":"2020年"}, "answer": "A"}, #
+    {"id": "02_s10", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 10, "question": "10. 2021年7月1日，习近平在天安门城楼上庄严宣告，经过全党全国各族人民持续奋斗，我们实现了（   ）。", "options": {"A":"第一个百年奋斗目标", "B":"社会主义现代化国家", "C":"社会主义现代化强国", "D":"中华民族伟大复兴"}, "answer": "A"}, #
+    {"id": "02_s11", "type": "single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 11, "question": "11.全面建成社会主义现代化强国的战略安排，把基本实现社会主义现代化的时间提前了（  ）年。", "options": {"A":"25年", "B":"15年", "C":"35年", "D":"10年"}, "answer": "B"}, #
+    # Multiple Choice (多项选择题) from 02.doc
+    {"id": "02_m1", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 1, "question": "1.党的二十大指出，新时代新征程中国共产党的中心任务，就是（ ）。", "options": {"A":"团结带领全国各族人民全面建成社会主义现代化强国", "B":"实现第二个百年奋斗目标", "C":"以中国式现代化全面推进中华民族伟大复兴。", "D":"贯彻新发展理念，促进高质量发展"}, "answer": "ABC"}, #
+    {"id": "02_m2", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 2, "question": "2. 坚持和发展中国特色社会主义的总任务是（ ）。", "options": {"A":"解放和发展社会生产力", "B":"实现社会主义现代化和中华民族伟大复兴", "C":"实在全面建成小康社会的基础上，分两步走在本世纪中叶建成富强民主文明和谐美丽的社会主义现代化强国", "D":"中国梦是中华民族伟大复兴的形象表达"}, "answer": "BC"}, #
+    {"id": "02_m3", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 3, "question": "3.中国梦的科学内涵是（ ）", "options": {"A":"国家富强", "B":"社会和谐", "C":"民族振兴", "D":"人民幸福"}, "answer": "ACD"}, #
+    {"id": "02_m4", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 4, "question": "4.中国梦的实现途径是（ ）。", "options": {"A":"坚持中国道路", "B":"维护世界和平", "C":"弘扬中国精神", "D":"凝聚中国力量"}, "answer": "ACD"}, #
+    {"id": "02_m5", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 5, "question": "5.关于中国梦的内涵理解正确的是（）。", "options": {"A":"核心内容时国家富强、民族振兴、人民幸福", "B":"中国梦是国家的梦、民族的梦、归根到底是人民的梦", "C":"国家富强、民族振兴是人民幸福的基础和保障", "D":"人民幸福是国家富强、民族振兴的根本出发点和落脚点"}, "answer": "ABCD"}, #
+    {"id": "02_m6", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 6, "question": "6.我们确立了“两个一百年”奋斗目标，就是（  ）。", "options": {"A":"到2020年实现国内生产总值和城乡居民人均收入比2010年翻一番，全面建成小康社会", "B":"到本世纪中叶建成富强民主文明和谐美丽的社会主义现代化国家，实现中华民族伟大复兴", "C":"到2035年，基本建成社会主义现代化国家", "D":"到2025年，实现工业强国目标"}, "answer": "AB"}, #
+    {"id": "02_m7", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 7, "question": "7.党的十九大报告中提出全面建设社会主义现代化国家的进程分两个阶段来安排(   )。", "options": {"A":"第一阶段，从2017年到2037年在全面建成小康社会的基础上，再奋斗15年，基本实现社会主义现代化", "B":"第二个阶段，从2037年到本世纪中叶在基本实现现代化的基础上，再奋斗15年，把我国建成富强民主文明和谐美丽的社会主义现代化强国", "C":"第一个阶段，从2020年到2035年，在全面建成小康社会的基础上，再奋斗15年，基本实现社会主义现代化", "D":"第二个阶段，从2035年到本世纪中叶，在基本实现现代化的基础上，再奋斗15年，把我国建成富强民主文明和谐美丽的社会主义现代化强国"}, "answer": "CD"}, #
+    {"id": "02_m8", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 8, "question": "8.中国梦是（   ）的梦，与世界各国人民的美好梦想相通。", "options": {"A":"和平", "B":"发展", "C":"合作", "D":"共赢"}, "answer": "ABCD"}, #
+    {"id": "02_m9", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 9, "question": "9.（   ），是我们党的初心和使命，是党领导现代化建设的出发点和落脚点，也是新发展理念的“根”和“魂。", "options": {"A":"为人民谋幸福", "B":"为人民谋复兴", "C":"为民族谋复兴", "D":"为民族谋幸福"}, "answer": "AC"}, #
+    {"id": "02_m10", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 10, "question": "10..从2020年到2035年，基本实现社会主义现代化的目标要求(   )。", "options": {"A":"在经济建设方面，我国经济实力、科技实力将大幅跃升，跻身创新型国家前列", "B":"在政治建设方面，人民平等参与、平等发展权利得到充分保障，法治国家、法治政府、法治社会基本建成，各方面制度更加完善，国家治理体系和治理能力现代化基本实现", "C":"在文化建设方面，社会文明程度达到新的高度，国家文化软实力显著增强，中华文化影响更加广泛深入", "D":"在生态文明建设方面，生态环境根本好转，美丽中国目标基本实现"}, "answer": "ABCD"}, #
+    {"id": "02_m11", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 11, "question": "11. 从2035年到本世纪中叶，建成社会主义现代化强国的目标要求(  )", "options": {"A":"我国将拥有高度的物质文明，社会生产力水平大幅提高，核心竞争力名列世界前茅，经济总量和市场规模超越其他国家", "B":"我国将拥有高度的政治文明，形成又有集中又有民主、又有纪律又有自由、又有统一意志又有个人心情舒畅生动活泼的政治局面，依法治国和以德治国有机结合", "C":"我国将拥有高度的精神文明，践行社会主义核心价值观成为全社会自觉行动，国民素质显著提高，中国精神、中国价值、中国力量成为中国发展的重要影响力和推动力", "D":"我国将拥有高度的社会文明，城乡居民将普遍拥有较高的收入、富裕的生活、健全的基本公共服务"}, "answer": "ABCD"}, #
+    {"id": "02_m12", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 12, "question": "12.全面建成了小康社会的重大意义是（   ）。", "options": {"A":"意味着中华民族实现千百年来的夙愿", "B":"表明我国发展和人民生活水平跃上新的大台阶", "C":"表明我国已经实现了由高速发展向高质量发展转变", "D":"是实现中华民族伟大复兴征程中的关键一步"}, "answer": "ABD"}, #
+    {"id": "02_m13", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 13, "question": "13.中国式现代化的特征是（     ）。", "options": {"A":"人口规模巨大的现代化", "B":"全体人民共同发展的现代化", "C":"物质文明和精神文明相协调的现代化", "D":"人与自然和谐共生的现代化", "E":"走和平发展道路的现代化"}, "answer": "ACDE"}, # # Typo "共同发展" in source, should be "共同富裕" to be fully aligned with 5 characteristics. However, sticking to source.
+    {"id": "02_m14", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 14, "question": "14.中国式现代化（    ）。", "options": {"A":"深深植根于中华优秀传统文化", "B":"体现科学社会主义的先进本质", "C":"借鉴吸收一切人类优秀文明成果", "D":"代表人类文明进步的发展方向", "E":"是一种全新的人类文明形态，但不可复制。"}, "answer": "ABCD"}, #
+    {"id": "02_m15", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 15, "question": "15.中国式现代化的本质要求是(    )", "options": {"A":"坚持中国共产党领导", "B":"坚持中国特色社会主义", "C":"实现高质量发展", "D":"发展全过程人民民主", "E":"实现全体人民共同富裕"}, "answer": "ABCDE"}, #
+    {"id": "02_m16", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 16, "question": "16.推进中国式现代化需要牢牢把握的重大原则是（）。", "options": {"A":"坚持和加强党的全面领导", "B":"坚持中国特色社会主义道路", "C":"坚持以人民为中心的发展思想", "D":"坚持深化改革开放", "E":"坚持发扬斗争精神"}, "answer": "ABCDE"}, #
+    {"id": "02_m17", "type": "multiple", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 17, "question": "17.推进中国式现代化需要正确处理的重大关系是（）。", "options": {"A":"正确处理顶层设计与实践探索的关系", "B":"正确处理战略与策略的关系", "C":"正确处理守正与创新的关系", "D":"正确处理效率与公平的关系", "E":"正确处理独立自主与对外开放的关系"}, "answer": "ABCDE"}, #
+    # Judgment (判断题) from 02.doc
+    {"id": "02_j1", "type": "judgment_as_single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 1, "question": "1.共同富裕是中国特色社会主义的本质要求，我国很快就实现共同富裕。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, #
+    {"id": "02_j2", "type": "judgment_as_single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 2, "question": "2.团结奋斗是中国共产党和中国人民最显著的精神标识，是中国人民创造历史伟业的必由之路。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "02_j3", "type": "judgment_as_single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 3, "question": "3.中国式现代化创造了人类文明新形态，为人类实现现代化提供了新的选择。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "02_j4", "type": "judgment_as_single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 4, "question": "4.独立自主是我们立党立国的重要原则，对外开放是我国的基本国策。推进中国式现代化，必须坚持独立自主、自立自强。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "02_j5", "type": "judgment_as_single", "source_doc": "02.doc", "doc_order": 2, "q_num_in_doc": 5, "question": "5.中国式现代化为广大发展中国家探索现代化道路提供了全新选择。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+
+    # --- Document 03.doc (doc_order: 3) ---
+    # Single Choice (单项选择题)
+    {"id": "03_s1", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 1, "question": "1.习近平指出：“一定要认清，中国最大的国情就是（ ）。什么是中国特色？这就是中国特色。”", "options": {"A":"人口14亿", "B":"中国共产党的领导", "C":"人均GDP世界第二", "D":"吃饭是个山大的问题"}, "answer": "B"}, #
+    {"id": "03_s2", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 2, "question": "2.（  ）是党的领导的最高原则，是党保持团结统一和强大战斗力的关键所在。", "options": {"A":"民主集中制", "B":"党中央集中统一领导", "C":"群众路线", "D":"实事求是"}, "answer": "B"}, #
+    {"id": "03_s3", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 3, "question": "3. 维护党中央权威和集中统一领导，最关键的是（  ）。", "options": {"A":"坚决维护习近平同志党中央的核心、全党的核心地位", "B":"实行民主集中制", "C":"修改党章，加强党中央权力", "D":"严明政治纪律"}, "answer": "A"}, #
+    {"id": "03_s4", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 4, "question": "4.中国共产党是以（   ）为根本组织原则和领导制度。", "options": {"A":"群众路线", "B":"民主集中制", "C":"党章", "D":"政治纪律"}, "answer": "B"}, #
+    {"id": "03_s5", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 5, "question": "5.党的领导制度是我国的（   ）制度", "options": {"A":"根本制度", "B":"重要制度", "C":"基本制度", "D":"政策策略"}, "answer": "A"}, #
+    {"id": "03_s6", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 6, "question": "6. 坚持党总揽全局、协调各方的领导核心地位，（  ）形象地说，这就像“众星捧月”，这个“月”就是中国共产党。", "options": {"A":"习近平", "B":"邓小平", "C":"毛泽东", "D":"江泽民"}, "answer": "A"}, #
+    {"id": "03_s7", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 7, "question": "7. 中国共产党的性质决定了党的宗旨是（  ）。", "options": {"A":"立党为公、执政为民", "B":"以人为本、执政为民", "C":"全心全意为人民服务", "D":"为实现共产主义而奋斗"}, "answer": "C"}, #
+    {"id": "03_s8", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 8, "question": "8.（  ）是我国的根本领导制度，居于统领地位。", "options": {"A":"党的组织原则", "B":"党的政治原则", "C":"党的领导制度", "D":"党的性质宗旨"}, "answer": "C"}, #
+    {"id": "03_s9", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 9, "question": "9. 历史和现实证明，（   ）就没有中国特色社会主义的产生与发展。", "options": {"A":"没有中国共产党的指导", "B":"没有中国共产党的组织", "C":"没有中国共产党的领导", "D":"没有中国共产党的监督"}, "answer": "C"}, #
+    {"id": "03_s10", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 10, "question": "10.（  ）将党的领导制度明确为我国根本领导制度。", "options": {"A":"党的十九大", "B":"党的十九届三中全会", "C":"党的十九届四中全会", "D":"党的十九届五中全会"}, "answer": "C"}, #
+    {"id": "03_s11", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 11, "question": "11.《中国共产党党章》明确规定，中国共产党是中国工人阶级的先锋队，同时是（   ）。", "options": {"A":"中国人民的先锋队", "B":"中华民族的先锋队", "C":"中国人民和中华民族的先锋队", "D":"中国新阶层的先锋队"}, "answer": "C"}, #
+    {"id": "03_s12", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 12, "question": "12. （   ）是中国特色社会主义最本质的特征。", "options": {"A":"以经济建设为中心", "B":"以人为本", "C":"“五位一体总体布局”", "D":"中国共产党的领导"}, "answer": "D"}, #
+    {"id": "03_s13", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 13, "question": "13.面对新时代新挑战新要求，（  ）就是战胜艰难险阻，不断取得胜利的制胜法宝。", "options": {"A":"改进完善党的领导", "B":"坚持和加强党的领导", "C":"全面推进党的改革", "D":"增加党员人数"}, "answer": "B"}, #
+    {"id": "03_s14", "type": "single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 14, "question": "14.中国共产党的领导是中国特色社会主义最本质的特征，这是（  ）以来习近平提出的一个重要论断。", "options": {"A":"党的十八大", "B":"党的十五大", "C":"党的十九大", "D":"党的十七大"}, "answer": "A"}, #
+    # Multiple Choice (多项选择题) from 03.doc
+    {"id": "03_m1", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 1, "question": "1.中国共产党领导是中国特色社会主义最本质的特征，（ ）。", "options": {"A":"这是在近代以来中国历史发展中形成的", "B":"这是由中国最广大人民根本利益决定的", "C":"这是实现中华民族伟大复兴历史任务决定的", "D":"这决定了中国特色社会主义其他特点和特征"}, "answer": "ABCD"}, #
+    {"id": "03_m2", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 2, "question": "2.中国特色社会主义之所以是社会主义，究其根本就在于（  ）。", "options": {"A":"坚持科学社会主义基本原则", "B":"坚持中国共产党的领导", "C":"坚持按劳分配", "D":"坚持社会主义市场经济体制"}, "answer": "AB"}, #
+    {"id": "03_m3", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 3, "question": "3.全面加强党的领导，（  ）。", "options": {"A":"使我们有效应对严峻复杂的国际形势和接踵而至的巨大风险挑战", "B":"有力推进了党和国家各项事业的顺利发展", "C":"胜利实现了全面建成小康社会的战略目标", "D":"开启了全面建设社会主义现代化国家新征程。", "E":"在反腐败、脱贫攻坚等重大斗争中，党的全面领导的优势得到充分彰显"}, "answer": "ABCDE"}, #
+    {"id": "03_m4", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 4, "question": "4健全党的全面领导制度，必须（   ）。", "options": {"A":"必须完善党在各种组织中发挥领导作用的制度", "B":"必须完善党协调各方的机制", "C":"必须完善党领导各项事业的具体制度", "D":"必须完善人民代表大会制度"}, "answer": "ABC"}, #
+    {"id": "03_m5", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 5, "question": "5.党的领导是做好党和国家各项工作的根本保证，是我国（  ）的根本点，绝对不能有丝毫动摇。", "options": {"A":"民族团结", "B":"社会稳定", "C":"政治稳定", "D":"经济发展"}, "answer": "ABCD"}, #
+    {"id": "03_m6", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 6, "question": "6. 确保党始终总揽全局、协调各方，必须增强政治意识（  ），自觉维护党中央权威和集中统一领导，自觉在思想上政治上行动上同党中央保持高度一致。", "options": {"A":"大局意识", "B":"核心意识", "C":"中心意识", "D":"看齐意识"}, "answer": "ABD"}, #
+    {"id": "03_m7", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 7, "question": "7. 党是最高政治领导力量，这是由我国（  ）和（ ）所决定的。", "options": {"A":"国家性质", "B":"国体政体", "C":"经济基础", "D":"经济制度"}, "answer": "AB"}, #
+    {"id": "03_m8", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 8, "question": "8. 坚持和完善党的领导，是（  ）。", "options": {"A":"党和国家的根本所在、命脉所在", "B":"全国各族人民的利益所在、幸福所在", "C":"中国特色社会主义最本质的特征", "D":"中国特色社会主义制度的最大优势"}, "answer": "ABCD"}, #
+    {"id": "03_m9", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 9, "question": "9.中国共产党是中国特色社会主义事业的（   ）。", "options": {"A":"开创者", "B":"推动者", "C":"引领者", "D":"发动者"}, "answer": "ABC"}, #
+    {"id": "03_m10", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 10, "question": "10.党章规定的民主集中制要求（  ）。", "options": {"A":"党员个人服从党的组织", "B":"少数服从多数", "C":"下级组织服从上级组织", "D":"全党各个组织和全体党员服从党的全国代表大会和中央委员会"}, "answer": "ABCD"}, #
+    {"id": "03_m11", "type": "multiple", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 11, "question": "11.坚持和加强党的全面领导，使党的（   ）显著增强.", "options": {"A":"政治领导力", "B":"思想引领力", "C":"群众组织力", "D":"社会号召力"}, "answer": "ABCD"}, #
+    # Judgment (判断题) from 03.doc
+    {"id": "03_j1", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 1, "question": "1.贯彻新发展理念，是新时代我国发展壮大的必由之路，全面从严治党是党永葆生机活力、走好新的赶考之路的必由之路。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "03_j2", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 2, "question": "2.坚持和完善党的领导，是党和国家的根本所在、命脉所在，是全国各族人民的利益所在、幸福所在。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "03_j3", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 3, "question": "3.党的全面领导既坚持党的集中统一领导原则，坚持党是最高政治领导力量，又坚持民主集中制、发扬党内民主，坚持党的领导与人民当家作主、依法治国有机统一。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "03_j4", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 4, "question": "4.党的领导是全面的，所以，党组织包揽包办一切事情。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, #
+    {"id": "03_j5", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 5, "question": "5.加强和维护党中央权威和集中统一领导，是全党共同的政治责任，是党和国家事业发展的必然要求。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "03_j6", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 6, "question": "6.坚持党中央权威和集中统一领导，就可以不讲民主集中制。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, #
+    {"id": "03_j7", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 7, "question": "7. 历史充分证明，没有中国共产党，就没有新中国，就没有中华民族伟大复兴，历史和人民选择了中国共产党。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "03_j8", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 8, "question": "8.把党的领导制度作为我国的根本领导制度，彰显了我们党的高度制度自觉、制度自信。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "03_j9", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 9, "question": "9.坚持党总揽全局、协调各方的领导核心地位，是党作为最高政治力量在治国理政中的必然要求。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "03_j10", "type": "judgment_as_single", "source_doc": "03.doc", "doc_order": 3, "q_num_in_doc": 10, "question": "10.中国共产党的自身优势是中国特色社会主义制度优势的主要来源。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+
+    # --- Document 04.doc (doc_order: 4) ---
+    # Single Choice (单项选择题)
+    {"id": "04_s1", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 1, "question": "1.（  ）是立党为公、执政为民的本质要求。", "options": {"A":"贯彻新发展理念", "B":"实现高质量发展", "C":"为民造福", "D":"政治立场"}, "answer": "C"}, #
+    {"id": "04_s2", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 2, "question": "2.（  ）始终是党的生命线和根本工作路线，是我们党永葆青春活力和战斗力的重要传家宝。", "options": {"A":"群众路线", "B":"经济路线", "C":"人民立场", "D":"政治立场"}, "answer": "A"}, #
+    {"id": "04_s3", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 3, "question": "3.（  ）是新时代坚持和发展中国特色社会主义的根本立场，是贯穿党治国理政全部活动的一条红线。", "options": {"A":"把马克思主义基本原理与中国实际相结合", "B":"坚持以人民为中心", "C":"坚持和发展中国特色社会主义", "D":"“五位一体”总体布局"}, "answer": "B"}, #
+    {"id": "04_s4", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 4, "question": "4.中国共产党区别于其他政党的显著标志是（  ）。", "options": {"A":"深化改革", "B":"人民立场", "C":"促进高质量发展", "D":"实事求是"}, "answer": "B"}, #
+    {"id": "04_s5", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 5, "question": "5.（ ）是党执政的最大底气，也是党执政最深厚的根基。", "options": {"A":"实现共产主义理想", "B":"物质基础雄厚", "C":"有丰富经验", "D":"人民"}, "answer": "D"}, #
+    {"id": "04_s6", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 6, "question": "6.（  ）是党的工作的最高裁决者和最终评判者。", "options": {"A":"实践", "B":"人民", "C":"国务院", "D":"党中央"}, "answer": "B"}, #
+    {"id": "04_s7", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 7, "question": "7.（  ）是贯彻群众路线的有效途径。", "options": {"A":"以人民为中心", "B":"调查研究", "C":"把人民对美好生活作为奋斗目标", "D":"构建新发展格局"}, "answer": "B"}, #
+    {"id": "04_s8", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 8, "question": "8.我们党讲宗旨，讲了很多话，但说到底还是（ ）这句话。", "options": {"A":"以人民为中心", "B":"为人民服务", "C":"坚持人民主体地位", "D":"群众路线是根本工作路线"}, "answer": "B"}, #
+    {"id": "04_s9", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 9, "question": "9.新时代要坚持以人民为中心，在推动社会全面进步中促进（   ）的全面发展。", "options": {"A":"人", "B":"经济", "C":"政治", "D":"文化"}, "answer": "A"}, #
+    {"id": "04_s10", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 10, "question": "10.（  ）是社会主义的本质要求，是中国式现代化的重要特征。", "options": {"A":"共同富裕", "B":"社会和谐", "C":"人民主体地位", "D":"解决社会主要矛盾"}, "answer": "A"}, #
+    {"id": "04_s11", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 11, "question": "11.实现全体人民共同富裕的宏伟目标，最终靠的是（  ）。", "options": {"A":"人", "B":"奋斗", "C":"实干", "D":"发展"}, "answer": "D"}, #
+    {"id": "04_s12", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 12, "question": "12.党执政后的最大危险是（  ）。", "options": {"A":"消极腐败", "B":"改革出问题", "C":"没有坚持公有制的主体地位", "D":"脱离群众"}, "answer": "D"}, #
+    {"id": "04_s13", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 13, "question": "13.我们党的最大政治优势是（   ）。", "options": {"A":"党领导一切", "B":"走中国特色社会主义道路", "C":"人多力量大", "D":"密切联系群众"}, "answer": "D"}, #
+    {"id": "04_s14", "type": "single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 14, "question": "14.邓小平指出：“社会主义最大的优越性就是（  ），这是体现社会主义本质的一个东西。”", "options": {"A":"党的领导", "B":"共同富裕", "C":"办事效率高", "D":"走和平发展道路"}, "answer": "B"}, #
+    # Multiple Choice (多项选择题) from 04.doc
+    {"id": "04_m1", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 1, "question": "1.对“江山就是人民、人民就是江山”的理解是（  ）。", "options": {"A":"闪耀着历史唯物主义的真理光芒", "B":"充分说明我国国体政体的人民性", "C":"人民是我们党的生命之根、执政之基、力量之源", "D":"这是由我们党的性质、宗旨决定的"}, "answer": "ABCD"}, #
+    {"id": "04_m2", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 2, "question": "2.坚持人民立场，就要做到（   ）。", "options": {"A":"与人民风雨同舟、生死与共", "B":"始终牢记党的初心和使命", "C":"始终保持党同人民群众的血肉联系", "D":"坚持以人民为中心的执政理念"}, "answer": "ABCD"}, #
+    {"id": "04_m3", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 3, "question": "3.党依靠人民创造历史伟业，就要做到（  ）。", "options": {"A":"尊重人民主体地位", "B":"尊重人民首创精神", "C":"激发人民群众的创新创造活力", "D":"总结、概括人民群众实践中形成的新鲜经验"}, "answer": "ABCD"}, #
+    {"id": "04_m4", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 4, "question": "4.领导干部要树立这样的政绩观（  ）。", "options": {"A":"以人民满意不满意作为检验工作的最终评判标准", "B":"把为民办事、为民造福作为最重要的政绩", "C":"把为老百姓办了多少好事实事作为检验政绩的重要标准", "D":"以国内生产总值增长率论英雄", "E":"大搞劳民伤财的形象工程和政绩工程"}, "answer": "ABC"}, # # Corrected to ABC from ABCD as per source 21 (implied, no E) vs source 181 (ABCD)
+    {"id": "04_m5", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 5, "question": "5.坚持以人民为中心的发展思想，要（  ）。", "options": {"A":"坚持和贯彻党的群众路线", "B":"把以人民为中心的发展思想切实贯穿到党和国家事业各方面", "C":"推动全体人民共同富裕取得更为明显的实质性进展。", "D":"总结、概括人民群众实践中形成的新鲜经验"}, "answer": "ABCD"}, #
+    {"id": "04_m6", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 6, "question": "6.对党的群众路线的理解，（  ）。", "options": {"A":"其内容是一切为了群众，一切依靠群众，从群众中来，到群众中去", "B":"它是唯物史观关于人民群众是历史创造者的原理在党的工作中的运用", "C":"它充分体现了以人民为中心的根本政治立场", "D":"它是我们党永葆青春活力和战斗力的重要传家宝"}, "answer": "ABCD"}, #
+    {"id": "04_m7", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 7, "question": "7.实现共同富裕 ，（  ）。", "options": {"A":"这是中国特色社会主义的本质要求", "B":"这是中国式现代化的重要特征", "C":"这不仅是经济问题，而且是关系党的执政基础的重大政治问题", "D":"这是解决我国发展不平衡不充分问题的现实需要", "E":"要处理好先富和共富的关系"}, "answer": "ABCDE"}, #
+    {"id": "04_m8", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 8, "question": "8.扎实推进共同富裕，要把握好（  ）的原则。", "options": {"A":"鼓励勤劳创新致富", "B":"坚持基本经济制度", "C":"量力而行", "D":"坚持循序渐进", "E":"整齐划一"}, "answer": "ABCD"}, #
+    {"id": "04_m9", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 9, "question": "9.党依靠人民，从小到大、从弱到强，打败了强大的内外敌人，取得了新民主主义革命胜利，实现了（   ），建立了中华人民共和国。", "options": {"A":"人民幸福", "B":"民族独立", "C":"人民解放", "D":"国家富强"}, "answer": "BC"}, #
+    {"id": "04_m10", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 10, "question": "10.党依靠人民，推进（  ）走出一条中国特色社会主义道路。", "options": {"A":"改革开放", "B":"社会主义现代化建设", "C":"全面建成小康社会", "D":"社会主义现代化国家"}, "answer": "AB"}, #
+    {"id": "04_m11", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 11, "question": "11.党依靠人民，推动党和国家事业（ ），推动中国特色社会主义进入新时代。", "options": {"A":"经济社会发展", "B":"人民生活更加富裕", "C":"发生历史性变革", "D":"取得历史性成就"}, "answer": "CD"}, #
+    {"id": "04_m12", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 12, "question": "12.以人民为中心是我们党（  ）的生动体现，是全心全意为人民服务的时代彰显。", "options": {"A":"立党为公", "B":"落实群众路线", "C":"坚持宗旨原则", "D":"执政为民"}, "answer": "AD"}, #
+    {"id": "04_m13", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 13, "question": "13. 以人民为中心的发展思想，不是高高在上的宣传口号，绝对不能只停留在口头上，要全方位贯穿于经济社会发展的各个环节，体现在人民群众（ ）的扎实提升上。", "options": {"A":"使命感", "B":"获得感", "C":"幸福感", "D":"安全感"}, "answer": "BCD"}, #
+    {"id": "04_m14", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 14, "question": "14.（  ）与（  ）相统一，既是马克思主义的价值追求，也是社会主义的本质要求，更是中国共产党人的奋斗目标。", "options": {"A":"促进人的全面发展", "B":"促进社会稳定", "C":"促进共同富裕", "D":"促进经济发展"}, "answer": "AC"}, #
+    {"id": "04_m15", "type": "multiple", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 15, "question": "15.坚持以人民为中心的发展思想，就要在高质量发展中促进共同富裕，做到（ ）", "options": {"A":"发展为了人民", "B":"发展幸福人民", "C":"发展依靠人民", "D":"发展成果由人民共享"}, "answer": "ACD"}, #
+    # Judgment (判断题) from 04.doc
+    {"id": "04_j1", "type": "judgment_as_single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 1, "question": "1.人民是历史的创造者，是决定党和国家前途命运的根本力量。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "04_j2", "type": "judgment_as_single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 2, "question": "2.组织路线始终是党的生命线和根本工作路线，是我们党永葆青春活力和战斗力的重要传家宝。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, #
+    {"id": "04_j3", "type": "judgment_as_single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 3, "question": "3.中国共产党根基在人民、血脉在人民、力量在人民。人民是我们党的生命之根、执政之基、力量之源。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "04_j4", "type": "judgment_as_single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 4, "question": "4.“水能载舟、亦能覆舟”赢得人民信任、得到人民支持，党就能够克服任何困难。反之，我们将一事无成，甚至走向衰败。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "04_j5", "type": "judgment_as_single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 5, "question": "5.在中国共产党领导的社会主义中国，党性和人民性是一致的、统一的。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "04_j6", "type": "judgment_as_single", "source_doc": "04.doc", "doc_order": 4, "q_num_in_doc": 6, "question": "6.我们要实现14亿人共同富裕，必须脚踏实地、久久为功，不是所有人都同时富裕，也不是所有地区同时达到一个富裕水准，不可能齐头并进。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+
+    # --- Document 05.doc (doc_order: 5) ---
+    # Single Choice (单项选择题)
+    {"id": "05_s1", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 1, "question": "1.习近平强调：“（  ）是决定当代中国命运的关键一招，也是决定实现’两个一百年’奋斗目标、实现中华民族伟大复兴的关键一招。”", "options": {"A":"高质量发展", "B":"改革开放", "C":"全面依法治国", "D":"文化自信"}, "answer": "B"}, #
+    {"id": "05_s2", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 2, "question": "2.全面深化改革的总目标是（    ）。", "options": {"A":"推进国家治理体系和治理能力现代化", "B":"完善和发展中国特色社会主义制度，推进国家治理体系和治理能力现代化", "C":"进一步解放思想、发展社会生产力", "D":"赋予社会主义新的生机活力，推进国家治理体系和治理能力现代化"}, "answer": "B"}, #
+    {"id": "05_s3", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 3, "question": "3.中国坚持对外开放的基本国策，坚定奉行（   ）的开放战略。", "options": {"A":"互利共赢", "B":"不结盟", "C":"“一带一路”倡议", "D":"构建人类命运共同体"}, "answer": "A"}, #
+    {"id": "05_s4", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 4, "question": "4.“一带一路”建设，坚持（   ）原则，机会和成果属于全世界。", "options": {"A":"互利共赢", "B":"共商共建共享", "C":"共商共建", "D":"平等互惠"}, "answer": "B"}, #
+    {"id": "05_s5", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 5, "question": "5.（  ）是新时代全面深化改革开放的思想前提。", "options": {"A":"实事求是", "B":"解放思想", "C":"开拓创新", "D":"贯彻新发展理念"}, "answer": "B"}, #
+    {"id": "05_s6", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 6, "question": "6.党的十九大提出，到（  ）“各方面制度更加完善，国家治理体系和治理能力现代化基本实现”。", "options": {"A":"2035年", "B":"2030年", "C":"2025年", "D":"2020年"}, "answer": "A"}, #
+    {"id": "05_s7", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 7, "question": "7.中国特色社会主义制度和国家治理体系是以（    ）为指导、植根中国大地、具有深厚中华文化根基、深得人民拥护的制度和治理体系。", "options": {"A":"社会主义", "B":"中国特色社会主义", "C":"马克思主义", "D":"毛泽东思想"}, "answer": "C"}, #
+    {"id": "05_s8", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 8, "question": "8.坚持和完善中国特色社会主义制度、推进国家治理体系和治理能力现代化，不仅要建立完善的制度体系，还要在不断提高（  ）上狠下功夫。", "options": {"A":"民主与法治", "B":"制度创新和社会和谐", "C":"社会发展和经济增速", "D":"制度执行力和治理能力"}, "answer": "D"}, #
+    {"id": "05_s9", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 9, "question": "9.（   ）作出了全面深化改革的决定。", "options": {"A":"党的十八大", "B":"党的十八届三中全会", "C":"党的十九大", "D":"党的十九届六中全会"}, "answer": "B"}, #
+    {"id": "05_s10", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 10, "question": "10.全面深化改革能否顺利推进，关键取决于党，取决于（   ）。", "options": {"A":"全体人民的共同参与", "B":"党的集中统一领导", "C":"全方位对外开放", "D":"社会主义的发展方向"}, "answer": "B"}, #
+    {"id": "05_s11", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 11, "question": "11.（    ）是运用国家制度管理国家各方面事务的能力。", "options": {"A":"治理能力", "B":"治理体系", "C":"管理能力", "D":"协调能力"}, "answer": "A"}, #
+    {"id": "05_s12", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 12, "question": "12.（   ），习近平先后提出共建“丝绸之路经济带”和“21世纪海上丝绸之路”的重大倡议。", "options": {"A":"2015年9月和10月", "B":"2014年9月和10月", "C":"2013年9月和10月", "D":"2012年9月和10月"}, "answer": "C"}, #
+    {"id": "05_s13", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 13, "question": "13.中阿新闻交流中心、中阿电子图书馆门户网站正式落地；“汉语热”在阿拉伯国家持续升温，沙特、阿联酋、埃及宣布将中文教学纳入国民教育体系。上述现象主要说明（  ）", "options": {"A":"各国之间经济互联互通", "B":"形成了“一带一路”产业化集群", "C":"“一带一路”促进人文交流更加深入", "D":"中华文化成为人类文明的中心"}, "answer": "C"}, #
+    {"id": "05_s14", "type": "single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 14, "question": "14.推进改革的目的是要不断推进我国社会主义制度（   ），赋予社会主义新的生机活力。", "options": {"A":"自我完善和发展", "B":"现实性和实效性", "C":"人民性和整体性", "D":"整体推进和全面发展"}, "answer": "A"}, #
+    # Multiple Choice (多项选择题) from 05.doc
+    {"id": "05_m1", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 1, "question": "1.改革开放是（  ）。", "options": {"A":"决定当代中国命运的关键一招", "B":"坚持和发展中国特色社会主义的必由之路", "C":"党和人民大踏步赶上时代的重要法宝", "D":"完成新时代目标任务的必然要求"}, "answer": "ABCD"}, #
+    {"id": "05_m2", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 2, "question": "2.改革开放是坚持和发展中国特色社会主义的必由之路，因为（   ）。", "options": {"A":"改革开放为中国特色社会主义开创、发展和完善提供了实践基础", "B":"改革开放深化了对社会主义建设规律的认识，为坚持和发展中国特色社会主义提供了有力支撑", "C":"谱写新时代中国特色社会主义的新篇章，依然需要全面深化改革、不断扩大对外开放", "D":"以上都正确"}, "answer": "ABCD"}, #
+    {"id": "05_m3", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 3, "question": "3.党的十一届三中全会来，我国创造了（  ）两大奇迹,极大地改变了中国的面貌。", "options": {"A":"经济快速发展", "B":"社会长期稳定", "C":"民族团结", "D":"“新四大发明”"}, "answer": "AB"}, #
+    {"id": "05_m4", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 4, "question": "4.当前，之所以要全面深化改革开放 ，是因为（   ）。", "options": {"A":"发展中不平衡、不协调、不可持续问题依然突出", "B":"科技创新能力不强", "C":"产业结构不合理，发展方式依然粗放", "D":"城乡区域发展差距和居民收入分配差距依然较大", "E":"形式主义、官僚主义、享乐主义和奢靡之风问题突出"}, "answer": "ABCDE"}, #
+    {"id": "05_m5", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 5, "question": "5.全面深化改革开放，必须（    ）。", "options": {"A":"勇于破除一切不合时宜的观念，深入贯彻新理念新思想新战略", "B":"勇于打破部门利益、行业利益、本位思想，服从国家整体利益", "C":"勇于破除根本制度、基本制度障碍，构建系统完备、科学规范、运行有效的制度体系", "D":"勇于破解我国开放型经济体制建设中的突出问题，积极适应经济全球化新趋势。"}, "answer": "ABD"}, #
+    {"id": "05_m6", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 6, "question": "6.全面深化改革开放，是一场全面、系统、整体的制度创新，要着眼于建立一整套更完备、更稳定、更管用的制度体系，包括（    ）。", "options": {"A":"坚持和完善人民当家作主制度体系", "B":"完善涉外经济法律和规则体系", "C":"坚持和完善繁荣发展社会主义先进文化的制度", "D":"坚持和完善统筹城乡的民生保障制度和共建共治共享的社会治理制度", "E":"坚持和完善生态文明制度体系"}, "answer": "ABCDE"}, #
+    {"id": "05_m7", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 7, "question": "7.改革开放要坚守政治原则和底线，不是改弦易张。这里面最核心的是（  ）、（ ），偏离了这一条，那就南辕北辙了。", "options": {"A":"坚持和改善人民代表大会制度", "B":"坚持和改善党的领导", "C":"坚持和完善中国特色社会主义制度", "D":"建成社会主义现代化国家"}, "answer": "BC"}, #
+    {"id": "05_m8", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 8, "question": "8.改革开放是有方向、有立场、有原则的，必须（    ）。", "options": {"A":"有利于进一步解放思想、进一步解放和发展社会生产力", "B":"坚持以人民为中心，促进社会公平正义、增进人民福祉", "C":"坚持和改善党的全面领导、坚持和完善中国特色社会主义制度", "D":"推进我国社会主义制度自我完善和发展，赋予社会主义新的生机活力"}, "answer": "ABCD"}, #
+    {"id": "05_m9", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 9, "question": "9.推进国家治理体系和治理能力现代化，（  ）。", "options": {"A":"这是一个国家现代化的重要标志", "B":"必须坚定中国特色社会主义制度自信", "C":"必须更好发挥中国特色社会主义制度优势", "D":"必须把中国特色社会主义制度优势转化为国家治理效能"}, "answer": "ABCD"}, #
+    {"id": "05_m10", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 10, "question": "10.下面哪些是全面深化改革开放必须坚持的正确方法。（   ）", "options": {"A":"增强全面深化改革的系统性、整体性、协同性", "B":"加强顶层设计和摸着石头过河相结合", "C":"统筹改革发展稳定", "D":"胆子要大，步子要稳", "E":"凡属重大改革都要于法有据"}, "answer": "ABCDE"}, #
+    {"id": "05_m11", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 11, "question": "11改革开放只有进行时、没有完成时，因为（   ）。", "options": {"A":"这是社会基本矛盾运动规律的深刻反映", "B":"这是总结世界社会主义实践经验得出的重要结论", "C":"这是推进党和人民事业发展的必然要求", "D":"全面建设社会主义现代化国家新，根本动力仍然是改革开放。"}, "answer": "ABCD"}, #
+    {"id": "05_m12", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 12, "question": "12.全面深化改革要在哪些领域发力。（  ）", "options": {"A":"要深化社会主义市场经济体制改革", "B":"深化人民当家作主制度体系改革", "C":"深化文化体制改革", "D":"健全加强党的全面领导、全面从严治党制度", "E":"深化社会体制改革"}, "answer": "ABCDE"}, #
+    {"id": "05_m13", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 13, "question": "13.对外开放面临的新形势是（   ）。", "options": {"A":"当今世界正在经历百年未有之大变局，新一轮科技革命和产业变革深入发展", "B":"逆全球化思潮抬头，单边主义、保护主义明显上升", "C":"局部冲突和动荡频发，全球性问题加剧", "D":"我国经济发展进入新常态，资源约束日益趋紧，环境承载能力接近上限", "E":"我国人力资源丰富，市场规模庞大，基础设施比较完善、产业配套齐全"}, "answer": "ABCDE"}, #
+    {"id": "05_m14", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 14, "question": "14.党的十八大以来，我国全面开放新举措是（  ）。", "options": {"A":"推进“一带一路”建设", "B":"推进贸易强国建设", "C":"积极营造国际一流营商环境", "D":"优化区域开放布局", "E":"统筹多双边和区域开放合作"}, "answer": "ABCDE"}, #
+    {"id": "05_m15", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 15, "question": "15.构建更高水平开放型经济新体制，必须（   ）。", "options": {"A":"依托我国超大规模市场优势，以国内大循环吸引全球资源要素，提升贸易投资合作质量和水平。", "B":"深化贸易投资领域体制机制改革，稳步扩大规则、规制、管理、标准等制度型开放。", "C":"推动货物贸易优化升级，创新服务贸易发展机制，发展数字贸易，加快建设贸易强国。", "D":"推动共建“一带一路”高质量发展。", "E":"优化区域开放布局，实施自由贸易试验区提升战略，"}, "answer": "ABCDE"}, #
+    {"id": "05_m16", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 16, "question": "16.在全面深化改革中，要增强改革的（    ）。", "options": {"A":"系统性", "B":"整体性", "C":"协同性", "D":"同一性"}, "answer": "ABC"}, #
+    {"id": "05_m17", "type": "multiple", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 17, "question": "17.全面深化改革的总目标是（    ）。", "options": {"A":"实现两个百年目标", "B":"实现中国梦", "C":"完善和发展中国特色社会主义制度", "D":"推进国家治理体系和治理能力现代化"}, "answer": "CD"}, #
+    # Judgment (判断题) from 05.doc
+    {"id": "05_j1", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 1, "question": "1.新时代全面深化改革开放，就其艰巨性、复杂性和系统性来说，是一场深刻的革命。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "05_j2", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 2, "question": "2.改革是由问题倒逼而产生，改革进程中的矛盾只能用改革的办法来解决。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "05_j3", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 3, "question": "3.凡属重大改革不必于法有据，需要修改法律的可以不用先修改法律，先破后立。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, #
+    {"id": "05_j4", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 4, "question": "4.中国对外开放，不是要一家唱独角戏，而是要欢迎各方共同参与；不是要谋求势力范围，而是要支持各国共同发展；不是要营造自己的后花园，而是要建设各国共享的百花园。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "05_j5", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 5, "question": "5.我国国家制度和国家治理体系的显著优势，要坚持以人民为中心的发展思想，不断保障和改善民生、增进人民福祉，走共同富裕道路的显著优势。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "05_j6", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 6, "question": "6.我国构建互利共赢、多元平衡、安全高效的开放型经济体系，不断增强我国国际经济合作和竞争新优势。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "05_j7", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 7, "question": "7.党的十一届三中全会是划时代的，开启了改革开放和社会主义现代化建设新时期。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "05_j8", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 8, "question": "8.党的二十大指出，要推进高水平对外开放，稳步扩大规则、规制、管理、标准等制度型开放。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, #
+    {"id": "05_j9", "type": "judgment_as_single", "source_doc": "05.doc", "doc_order": 5, "q_num_in_doc": 9, "question": "10.党的二十大指出，全面建设社会主义现代化国家的前进道路上，要牢牢把握五项重大原则：坚持和加强的全面领导，坚持中国特色社会主义道路、坚持以人民为中心的发展思想、坚持深化改革开放和坚持发扬斗争精神。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # # Source has q number 10, I assigned 9 based on sequence.
+    
+    # --- Document 06.doc (doc_order: 6) ---
+    # Single Choice (单项选择题)
+    {"id": "06_s1", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 1, "question": "1.（  ）是实现高质量发展的指导原则。", "options": {"A":"新发展阶段", "B":"新发展方位", "C":"新发展理念", "D":"供给侧改革"}, "answer": "C"}, # [cite: 1]
+    {"id": "06_s2", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 2, "question": "2. 党的十八大以来，我国经济已由高速增长阶段转向（）阶段。", "options": {"A":"世界级市场", "B":"高水平开放", "C":"强动力转换", "D":"高质量发展"}, "answer": "D"}, # [cite: 1]
+    {"id": "06_s3", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 3, "question": "3.（）是引领发展的第一动力。", "options": {"A":"劳动力", "B":"资本", "C":"科技", "D":"创新"}, "answer": "D"}, # [cite: 1]
+    {"id": "06_s4", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 4, "question": "4.构建高水平社会主义市场经济体制，关键是要（ ）。", "options": {"A":"处理好政府和市场的关系", "B":"处理好当前利益和长远利益的关系", "C":"处理好中国和外国的关系", "D":"处理好效率和公平的关系"}, "answer": "A"}, # [cite: 1]
+    {"id": "06_s5", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 5, "question": "5.我们乘势而上开启全面建设社会主义现代化国家新征程、向第二个百年奋斗目标进军，这标志着我国进入了一个（  ）。", "options": {"A":"新发展时期", "B":"新发展方位", "C":"新发展阶段", "D":"新发展格局"}, "answer": "C"}, # [cite: 1]
+    {"id": "06_s6", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 6, "question": "6.（  ）是发展行动的先导。", "options": {"A":"发展理念", "B":"发展格局", "C":"发展方向", "D":"发展策略"}, "answer": "A"}, # [cite: 1]
+    {"id": "06_s7", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 7, "question": "7.（  ）的发展理念，相互贯通、相互促进，是具有内在联系的集合体，要统一贯彻，不能顾此失彼，也不能相互替代。", "options": {"A":"改革、和谐、绿色、开放、共享", "B":"创新、协调、和谐、开放、共赢", "C":"创新、和谐、绿色、开放、发展", "D":"创新、协调、绿色、开放、共享"}, "answer": "D"}, # [cite: 1]
+    {"id": "06_s8", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 8, "question": "8.（  ）是根据我国发展阶段、环境、条件变化提出来的，是重塑我国国际合作和竞争新优势的战略抉择。", "options": {"A":"新发展理念", "B":"新发展格局", "C":"新发展阶段", "D":"新发展时期"}, "answer": "B"}, # [cite: 1]
+    {"id": "06_s9", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 9, "question": "9.现代化经济体系必须坚持质量第一、（   ）优先。", "options": {"A":"利益", "B":"速度", "C":"人才", "D":"效益"}, "answer": "D"}, # [cite: 2]
+    {"id": "06_s10", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 10, "question": "10.（ ）是化解我国经济发展面临困难和矛盾的重大举措。", "options": {"A":"供给侧结构性改革", "B":"健全民主法制", "C":"社会公平正义", "D":"人民主体地位"}, "answer": "A"}, # [cite: 2]
+    {"id": "06_s11", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 11, "question": "11.建设充分发挥（   ），更好发挥政府作用的经济体制。", "options": {"A":"市场作用", "B":"服务业动能", "C":"社会作用", "D":"社会福利补给"}, "answer": "A"}, # [cite: 2]
+    {"id": "06_s12", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 12, "question": "12.经济改革的方向是要让（  ）在资源配置中发挥决定性作用。", "options": {"A":"科技", "B":"创新", "C":"政府", "D":"市场"}, "answer": "D"}, # [cite: 2]
+    {"id": "06_s13", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 13, "question": "13.我国经济已由高速增长阶段转向（ ），正处在转变发展方式、优化经济结构、转换增长动力的攻关期。", "options": {"A":"高质量发展阶段", "B":"中高速阶段", "C":"低速阶段", "D":"高水平发展阶段"}, "answer": "A"}, # [cite: 2]
+    {"id": "06_s14", "type": "single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 14, "question": "14.国有企业是中国特色社会主义的重要物质基础和政治基础，关系（  ）地位的巩固，关系我们党的执政地位和执政能力，关系我国社会主义制度。", "options": {"A":"人民主体", "B":"公有制主体", "C":"经济体制主体", "D":"社会发展主体"}, "answer": "B"}, # [cite: 2]
+    # Multiple Choice (多项选择题) from 06.doc
+    {"id": "06_m1", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 1, "question": "1.新发展阶段是（ ）。", "options": {"A":"我国社会主义初级阶段历史进程中的一个重要阶段", "B":"中国共产党带领人民迎来从站起来、富起来到强起来历史性跨越的新阶段", "C":"全面建设社会主义现代化国家、向第二个百年奋斗目标进军的重要阶段。", "D":"决胜全面小康社会的阶段"}, "answer": "ABCD"}, # [cite: 2]
+    {"id": "06_m2", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 2, "question": "2.全面地理解和把握新发展理念，（  ）", "options": {"A":"要从根本宗旨上把握新发展理念，坚持以人民为中心的发展思想", "B":"要从问题导向上把握新发展理念，切实解决发展不平衡不充分问题", "C":"要从忧患意识上把握新发展理念，下好先手棋，打好主动仗", "D":"新发展理念是引领我国发展全局深刻变革的科学指引"}, "answer": "ABCD"}, # [cite: 2, 3]
+    {"id": "06_m3", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 3, "question": "3.新发展理念具有丰富的科学内涵和具体的实践要求是（ ）。", "options": {"A":"创新是引领发展的第一动力，创新发展注重的是解决发展动力问题", "B":"协调是持续健康发展的内在要求，协调发展注重的是解决发展不平衡问题", "C":"绿色是永续发展的必要条件和人民对美好生活追求的重要体现，绿色发展注重的是解决人与自然和谐共生问题", "D":"开放是国家繁荣发展的必由之路，开放发展注重的是解决发展内外联动问题", "E":"共享是中国特色社会主义的本质要求，共享发展注重的是解决社会公平正义问题"}, "answer": "ABCDE"}, # [cite: 3]
+    {"id": "06_m4", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 4, "question": "4.高质量发展的重大战略意义是（  ）。", "options": {"A":"高质量发展为全面建设社会主义现代化国家提供更为坚实的物质基础。", "B":"高质量发展是不断满足人民对美好生活需要的重要保证。", "C":"高质量发展是维护国家长治久安的必然要求。", "D":"以上都对"}, "answer": "ABCD"}, # [cite: 3, 4]
+    {"id": "06_m5", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 5, "question": "5.公有制经济包括（  ）。", "options": {"A":"国有经济", "B":"集体经济", "C":"混合所有制经济中的国有成分", "D":"混合所有制经济中的集体成分"}, "answer": "ABCD"}, # [cite: 4]
+    {"id": "06_m6", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 6, "question": "6.公有制经济 (   )。", "options": {"A":"是全体人民的宝贵财富", "B":"是我国各族人民共享发展成果的制度性保证", "C":"是巩固党的执政地位、坚持我国社会主义制度的重要保证", "D":"公有制主体地位不能动摇"}, "answer": "ABCD"}, # [cite: 4]
+    {"id": "06_m7", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 7, "question": "7.以下对于国有企业认识的观点，正确的是（  ）。", "options": {"A":"国有企业是中国特色社会主义的重要物质基础和政治基础", "B":"国有企业与民争利", "C":"要深化国有企业改革,坚持有利于国有资产保值增值", "D":"推动国有资本和国有企业做强做优做大。", "E":"坚持党对国有企业的领导不动摇"}, "answer": "ACDE"}, # [cite: 4]
+    {"id": "06_m8", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 8, "question": "8.非公有制经济包括（  ）。", "options": {"A":"个体经济", "B":"民营经济", "C":"港澳台投资经济", "D":"外商投资经济", "E":"混合所有制经济中的非国有成分和非集体成分"}, "answer": "ABCDE"}, # [cite: 4, 5]
+    {"id": "06_m9", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 9, "question": "9.我国非公有制经济是(  )。", "options": {"A":"社会主义市场经济的重要组成部分", "B":"稳定经济的重要基础", "C":"国家税收的重要来源", "D":"就业创业的重要领域，", "E":"经济持续健康发展的重要力量"}, "answer": "ABCDE"}, # [cite: 5]
+    {"id": "06_m10", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 10, "question": "10.构建新发展格局是（  ）。", "options": {"A":"把握未来发展主动权的先手棋", "B":"开放的国内国际双循环，不是封闭的国内单循环", "C":"以全国统一大市场基础上的国内大循环为主体,不是各地都搞自我小循环", "D":"事关全局的系统性、深层次变革", "E":"适应我国发展新阶段要求、塑造国际合作和竞争新优势的必然选择"}, "answer": "ABCDE"}, # [cite: 5]
+    {"id": "06_m11", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 11, "question": "11.构建新发展格局，必须（   ）。", "options": {"A":"具备强大的国内经济循环体系和稳固的基本盘，巩固和发展我国经济的强大竞争力", "B":"发挥比较优势，以国内大循环吸引全球资源要素", "C":"保证经济循环的畅通无阻", "D":"实现经济在高水平上的动态平衡"}, "answer": "ABCD"}, # [cite: 5]
+    {"id": "06_m12", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 12, "question": "12.大力推动构建新发展格局，必须（   ）。", "options": {"A":"坚持持问题导向和系统观念", "B":"着力破除制约加快构建新发展格局的主要矛盾和问题", "C":"着力发展实体经济", "D":"着力推动实施扩大内需战略同深化供给侧结构性改革有机结合", "E":"着力推动产业链供应链优化升级"}, "answer": "ABCDE"}, # [cite: 5]
+    {"id": "06_m13", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 13, "question": "13.建设现代化产业体系", "options": {"A":"巩固优势产业领先地位", "B":"大力发展战略性新兴产业", "C":"构建优质高效的服务业新体系", "D":"发展现代流通产业", "E":"加快发展数字经济"}, "answer": "ABCDE"}, # [cite: 5]
+    {"id": "06_m14", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 14, "question": "14.促进区域协调发展，（  ）。", "options": {"A":"是贯彻新发展理念的重要内容，也是实现高质量发展的必然要求", "B":"要深入实施区域协调发展战略、区域重大战略、主体功能区战略", "C":"要推进以人为核心的新型城镇化，加快农业转移人口市民化。", "D":"要求各地区在经济发展上达到同一水平"}, "answer": "ABC"}, # [cite: 5]
+    {"id": "06_m15", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 15, "question": "15.建设（  ）的高标准市场体系，是发挥我国市场优势的必然选择。", "options": {"A":"统一开放", "B":"竞争有序", "C":"制度完备", "D":"治理完善"}, "answer": "ABCD"}, # [cite: 5]
+    {"id": "06_m16", "type": "multiple", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 16, "question": "16.社会主义基本经济制度包括（  ）。", "options": {"A":"公有制为主体、多种所有制经济共同发展", "B":"按劳分配为主体、多种分配方式并存", "C":"社会主义市场经济体制", "D":"人民代表大会制度"}, "answer": "ABC"}, # [cite: 5]
+    # Judgment (判断题) from 06.doc
+    {"id": "06_j1", "type": "judgment_as_single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 1, "question": "1．坚持创新发展、协调发展、绿色发展、开放发展、共享发展，是关系我国发展全局的一场深刻变革。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 6]
+    {"id": "06_j2", "type": "judgment_as_single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 2, "question": "2.共享既是发展手段又是发展目标，同时还是评价发展的标准和尺度。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 6]
+    {"id": "06_j3", "type": "judgment_as_single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 3, "question": "3.经济发展是一个螺旋式上升的过程，上升不是线性的，量积累到一定阶段，必须转向质的提升，我国经济发展也要遵循这一规律。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 6]
+    {"id": "06_j4", "type": "judgment_as_single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 4, "question": "4.我国将立足新发展阶段，贯穿新发展理念，积极构建以国际大循环为主体、国内国际双循环相互促进的新发展格局。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 6]
+    {"id": "06_j5", "type": "judgment_as_single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 5, "question": "5．建设现代化经济体系是我国发展的战略目标，是推动高质量发展、全面提高经济整体竞争力的必然要求。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 6]
+    {"id": "06_j6", "type": "judgment_as_single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 6, "question": "6．全面建设社会主义现代化国家，最艰巨最繁重的任务依然在农村，最广泛最深厚的基础依然在农村。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 6]
+    {"id": "06_j7", "type": "judgment_as_single", "source_doc": "06.doc", "doc_order": 6, "q_num_in_doc": 7, "question": "7．坚持全民共享、全面共享、共建共享、渐进共享，使全体人民有更多获得感、幸福感、安全感，朝着共同富裕方向稳步前进。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 6]
+
+    # --- Document 07.doc (doc_order: 7) ---
+    # Single Choice (单项选择题)
+    {"id": "07_s1", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 1, "question": "1. 必须坚持(   )是第一生产力。", "options": {"A":"人才", "B":"资源", "C":"科技", "D":"环境"}, "answer": "C"}, # [cite: 7]
+    {"id": "07_s2", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 2, "question": "2.（ ）是发展第一动力。", "options": {"A":"科技", "B":"人才", "C":"创新", "D":"党的领导"}, "answer": "C"}, # [cite: 7]
+    {"id": "07_s3", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 3, "question": "3.（ ）提出“科学技术是第一生产力”。", "options": {"A":"毛泽东", "B":"邓小平", "C":"习近平", "D":"胡锦涛"}, "answer": "B"}, # [cite: 7]
+    {"id": "07_s4", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 4, "question": "4.科教兴国是我国的（  ）。", "options": {"A":"基本国策", "B":"基本政策", "C":"基本路线", "D":"基本战略"}, "answer": "A"}, # [cite: 7]
+    {"id": "07_s5", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 5, "question": "5.（  ）是民族振兴、社会进步的基石。", "options": {"A":"科技", "B":"教育", "C":"共同富裕", "D":"人才"}, "answer": "B"}, # [cite: 7, 8]
+    {"id": "07_s6", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 6, "question": "6.（   ）是发展教育的根本尺度。", "options": {"A":"科技突破", "B":"人民满意", "C":"实现共同富裕", "D":"发展生产力"}, "answer": "B"}, # [cite: 8]
+    {"id": "07_s7", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 7, "question": "7.（  ）是国家强盛之基、安全之要。", "options": {"A":"科技自立自强", "B":"人才引进", "C":"共同富裕", "D":"改革开放"}, "answer": "A"}, # [cite: 8]
+    {"id": "07_s8", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 8, "question": "8.（  ）是我们攀登世界科技高峰的必由之路。", "options": {"A":"自主创新", "B":"脱贫攻坚", "C":"守正创新", "D":"信息技术"}, "answer": "A"}, # [cite: 8]
+    {"id": "07_s9", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 9, "question": "9.必须坚持教育优先发展，把（  ）作为教育的根本任务，办好人民满意的教育。", "options": {"A":"立德树人", "B":"社会实践", "C":"创新拔尖", "D":"专业技术"}, "answer": "A"}, # [cite: 8]
+    {"id": "07_s10", "type": "single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 10, "question": "10.（  ）是科技创新的源头。我国面临的很多“卡脖子”技术问题，根子是基础理论研究跟不上。", "options": {"A":"应用研究", "B":"国家实验室", "C":"经济特区", "D":"基础研究"}, "answer": "D"}, # [cite: 8]
+    # Multiple Choice (多项选择题) from 07.doc
+    {"id": "07_m1", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 1, "question": "1.全面建设社会主义现代化国家,(   )。", "options": {"A":"教育是根本", "B":"科技是关键", "C":"人才是基础", "D":"改革是保证"}, "answer": "ABC"}, # [cite: 8, 9]
+    {"id": "07_m2", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 2, "question": "2. 实施（  ）是增强综合国力、满足人民群众美好生活需要的必然要求，是建设教育强国、科技强国、人才强国的重大举措", "options": {"A":"科教兴国战略", "B":"人才强国战略", "C":"创新驱动发展战略", "D":"“四个全面战略”"}, "answer": "ABC"}, # [cite: 9]
+    {"id": "07_m3", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 3, "question": "3.实施科教兴国战略，（   ）。", "options": {"A":"是应对新时代环境变化的必然要求", "B":"是建设创新型国家的必然要求", "C":"是应对国际竞争的有力举措", "D":"是决胜全面小康社会的重大部署"}, "answer": "ABC"}, # [cite: 9]
+    {"id": "07_m4", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 4, "question": "4.实施人才强国战略，（  ），实施更加积极、更加开放、更加有效的人才政策。", "options": {"A":"要坚持党管人才原则", "B":"坚持尊重劳动、尊重知识、尊重人才、尊重创造", "C":"完善人才战略布局", "D":"深化人才发展体制机制改革"}, "answer": "ABCD"}, # [cite: 9]
+    {"id": "07_m5", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 5, "question": "5.实施创新驱动发展战略，（   ），让创新成为全社会的共同行动。", "options": {"A":"要坚持面向世界科技前沿、面向经济主战场", "B":"要坚持面向国家重大需求、面向人民生命健康", "C":"坚持科技创新，增强自主创新能力", "D":"坚决打赢关键核心技术攻坚战"}, "answer": "ABCD"}, # [cite: 9]
+    {"id": "07_m6", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 6, "question": "6. 教育优先发展，要做到（  ），使我国教育越办越好。", "options": {"A":"经济社会发展规划优先安排教育发展", "B":"财政资金投入优先保障教育投入", "C":"公共资源配置优先满足教育和人力资源开发需要", "D":"推动健全优先发展教育事业的体制机制"}, "answer": "ABCD"}, # [cite: 9, 10]
+    {"id": "07_m7", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 7, "question": "7. 建设教育强国是（   ）。", "options": {"A":"全面建成社会主义现代化强国的战略先导", "B":"是实现高水平科技自立自强的重要支撑", "C":"是以中国式现代化全面推进中华民族伟大复兴的基础工程,", "D":"必须把教育事业放在优先发展的战略位置"}, "answer": "ABCD"}, # [cite: 10]
+    {"id": "07_m8", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 8, "question": "8.必须坚持教育（    ）。", "options": {"A":"为人民服务", "B":"为中国共产党治国理政服务", "C":"为巩固和发展中国特色社会主义制度服务", "D":"为改革开放和社会主义现代化建设服务"}, "answer": "ABCD"}, # [cite: 10]
+    {"id": "07_m9", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 9, "question": "9.落实立德树人根本任务，必须着力解决好（  ）的问题，这是教育的根本问题，也是（  ）的核心课题。", "options": {"A":"培养什么人", "B":"怎样培养人", "C":"为谁培养人", "D":"建设教育强国"}, "answer": "ABC"}, # [cite: 10] # D is not part of the typical "three questions" for education's fundamental task.
+    {"id": "07_m10", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 10, "question": "10.我们培养的人，（   ）。", "options": {"A":"要坚定共产主义远大理想和中国特色社会主义共同理想", "B":"要有高尚的道德品质，厚植爱国主义情怀", "C":"要养成刻苦学习的习惯", "D":"要积极投身社会实践，增长经验和技能"}, "answer": "ABCD"}, # [cite: 10]
+    {"id": "07_m11", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 11, "question": "11.办好人民满意的教育，（ ）。", "options": {"A":"大力促进教育公平", "B":"加快建设高质量教育体系", "C":"提升教育服务经济社会发展能力", "D":"坚持深化教育改革创新", "E":"坚持把教师队伍建设作为基础工作"}, "answer": "ABCDE"}, # [cite: 10]
+    {"id": "07_m12", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 12, "question": "12.实现高水平科技自立自强是（    ）。", "options": {"A":"应对风险挑战和维护国家利益的必然选择", "B":"构建新发展格局的内在要求", "C":"推动高质量发展的内在要求", "D":"满足人民美好生活需要的内在要求"}, "answer": "ABCD"}, # [cite: 10]
+    {"id": "07_m13", "type": "multiple", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 13, "question": "13.建设人才强国，必须（   ）。", "options": {"A":"走好人才自主培养之路", "B":"加快建设世界重要人才中心和创新高地", "C":"坚持党对人才工作的全面领导", "D":"深化人才发展体制机制改革", "E":"营造识才爱才敬才用才的环境"}, "answer": "ABCDE"}, # [cite: 10]
+    # Judgment (判断题) from 07.doc
+    {"id": "07_j1", "type": "judgment_as_single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 1, "question": "1.实现高水平科技自立自强是国家强盛和民族复兴的战略基石。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 10]
+    {"id": "07_j2", "type": "judgment_as_single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 2, "question": "2.全面建成社会主义现代化强国关键看科技自立自强。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 10]
+    {"id": "07_j3", "type": "judgment_as_single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 3, "question": "3.科技创新是百年未有之大变局中的一个关键变量，世界主要国家纷纷把科技创新作为国际战略博弈的主要战场。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 10]
+    {"id": "07_j4", "type": "judgment_as_single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 4, "question": "4.把教育技术掌握在自己手中，才能真正掌握竞争和发展的主动权。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 10] # Usually "关键核心技术"
+    {"id": "07_j5", "type": "judgment_as_single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 5, "question": "5.培养入才是国家和民族长远发展大计。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 10] # "入才" should be "人才"
+    {"id": "07_j6", "type": "judgment_as_single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 6, "question": "6.坚持党对人才工作的全面领导,这是做好人才工作的根本保证.", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 10, 11]
+    {"id": "07_j7", "type": "judgment_as_single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 7, "question": "7.科技是富国之本、兴邦大计。科技已经成为推动社会发展最活跃、最积极的因素。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 11] # "创新是引领发展的第一动力" is more common.
+    {"id": "07_j8", "type": "judgment_as_single", "source_doc": "07.doc", "doc_order": 7, "q_num_in_doc": 8, "question": "8.人才是国之大计、党之大计，是国家经济社会发展的支撑力量，在国家发展中始终具有基础性先导性全局性地位。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 11] # "教育是国之大计、党之大计"
+
+    # --- Document 08.doc (doc_order: 8) ---
+    # Single Choice (单项选择题)
+    {"id": "08_s1", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 1, "question": "1.我国是工人阶级领导的、以工农联盟为基础的(  )的社会主义国家，国家一切权力属于人民。", "options": {"A":"人民民主专政", "B":"人民当家作主", "C":"中国共产党领导", "D":"民主专政"}, "answer": "A"}, # [cite: 12]
+    {"id": "08_s2", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 2, "question": "2.(  )是人民当家作主和依法治国的根本保证。", "options": {"A":"人民民主", "B":"党的领导", "C":"宪法", "D":"全过程民主"}, "answer": "B"}, # [cite: 12]
+    {"id": "08_s3", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 3, "question": "3.人民当家作主是社会主义民主政治的本质特征，(    )是党领导人民治理国家的基本方式.", "options": {"A":"依法治国", "B":"坚持系统观念", "C":"全过程民主", "D":"民主集中制"}, "answer": "A"}, # [cite: 12, 13]
+    {"id": "08_s4", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 4, "question": "4.（  ）是党克敌制胜、执政兴国的重要法宝，是团结海内外全体中华儿女实现中华民族伟大复兴的重要法宝。", "options": {"A":"协商民主", "B":"统一战线", "C":"全过程人民民主", "D":"实现中华民族伟大复兴"}, "answer": "B"}, # [cite: 13]
+    {"id": "08_s5", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 5, "question": "5.（   ）是统一战线最核心、最根本的问题。", "options": {"A":"大团结大联合", "B":"广交朋友", "C":"凝聚人心", "D":"坚持党的领导"}, "answer": "D"}, # [cite: 13]
+    {"id": "08_s6", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 6, "question": "6.统战工作的关键是要(   )。", "options": {"A":"坚持求同存异", "B":"坚持党的领导", "C":"坚持同一性", "D":"坚持多样性"}, "answer": "A"}, # [cite: 13]
+    {"id": "08_s7", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 7, "question": "7.社会主义民主的实质是（   ）。", "options": {"A":"民主集中制", "B":"人民当家作主", "C":"人民代表大会制度", "D":"中华民族大团结"}, "answer": "B"}, # [cite: 13]
+    {"id": "08_s8", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 8, "question": "8.一个国家是不是民主，应该由这个国家的（   ）来评判，而不应该由外部少数人指手画脚来评判。", "options": {"A":"人民", "B":"执政党", "C":"社会团体", "D":"国家性质"}, "answer": "A"}, # [cite: 13, 14]
+    {"id": "08_s9", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 9, "question": "9.（   ）是社会主义的生命，没有民主就没有社会主义。", "options": {"A":"人民民主", "B":"人民当家作主", "C":"以人民为中心", "D":"坚持人民的主体地位"}, "answer": "A"}, # [cite: 14]
+    {"id": "08_s10", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 10, "question": "10.（   ）是中国发展全过程人民民主的根本保证。", "options": {"A":"人民当家作主", "B":"中国特色社会主义制度", "C":"人民民主专政", "D":"中国共产党的领导"}, "answer": "D"}, # [cite: 14]
+    {"id": "08_s11", "type": "single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 11, "question": "11.（  ）是指民主的制度安排，实质民主是指民主始终追求的价值目标，二者有机结合。", "options": {"A":"程序民主", "B":"协商民主", "C":"人民民主", "D":"全过程人民民主"}, "answer": "A"}, # [cite: 14]
+    # Multiple Choice (多项选择题) from 08.doc
+    {"id": "08_m1", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 1, "question": "1.人民民主是社会主义的生命，没有民主（  ）。", "options": {"A":"就没有社会主义", "B":"就没有社会主义的现代化", "C":"就没有中华民族伟大复兴", "D":"以上都对"}, "answer": "ABCD"}, # [cite: 14]
+    {"id": "08_m2", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 2, "question": "2.（   ）构成我国的基本政治制度。", "options": {"A":"中国共产党领导的多党合作和政治协商制度", "B":"民族区域自治制度", "C":"基层群众自治制度", "D":"人民代表大会制度"}, "answer": "ABC"}, # [cite: 14, 15]
+    {"id": "08_m3", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 3, "question": "3.屮国特色社会主义政治制度（  ）。", "options": {"A":"既把握了长期形成的历史传承，又把握了走过的发展道路", "B":"把握了现实要求、着眼解决现实问题", "C":"注重历史和现实、理论和实践、形式和内容有机统一", "D":"具有鲜明的中国特色、民族特色、时代特色"}, "answer": "ABCD"}, # [cite: 15]
+    {"id": "08_m4", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 4, "question": "4.中国特色社会主义政治制度的巨大优势体现在（  ）。", "options": {"A":"能够有效保证人民享有更加广泛的权利和自由", "B":"能够有效调节国家政治关系，形成安定团结的政治局面", "C":"能够集中力量办大事，有效促进社会生产力解放和发展", "D":"能够有效维护国家独立自主,有力维护国家主权、安全、发展利益"}, "answer": "ABCD"}, # [cite: 15]
+    {"id": "08_m5", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 5, "question": "5.中华人民共和国的一切权力属于人民，人民行使国家权力的机关是（）。", "options": {"A":"全国人民代表大会", "B":"地方各级人民代表大会", "C":"国务院", "D":"人民代表"}, "answer": "AB"}, # [cite: 15]
+    {"id": "08_m6", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 6, "question": "6.人民代表大会制度（  ）。", "options": {"A":"坚持中国共产党领导，有效保证国家沿着社会主义道路前进", "B":"最大限度保障人民当家作主", "C":"有效保证国家治理跳出治乱兴衰的历史周期率", "D":"正确处理事关国家前途命运的一系列重大政治关系，维护国家统一和民族团结", "E":"有效保证国家政治生活既充满活力又安定有序。"}, "answer": "ABCDE"}, # [cite: 15]
+    {"id": "08_m7", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 7, "question": "7.全过程人民民主是最真实的民主,具体体现在（ ）。", "options": {"A":"把党的主张、国家意志、人民意愿紧密融合在一起，彰显了人民民主的真实性", "B":"真实反映人民的期盼、希望和诉求", "C":"人民的意愿和呼声，经过民主决策程序成为党和国家的方针政策", "D":"真真切切落实到国家政治生活和社会生活各方面"}, "answer": "ABCD"}, # [cite: 15]
+    {"id": "08_m8", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 8, "question": "8.全过程人民民主是最广泛的民主, 具体体现在（ ）。", "options": {"A":"人民既充分享有民主选举权利，又充分享有民主协商、民主决策、民主管理、民主监督权利", "B":"既参与国家事务管理，又参与经济和文化事业以及社会事务管理", "C":"既参与国家发展顶层设计的意见建议征询，又参与地方公共事务治理", "D":"不同地域、不同领域、不同层级、不同群体均实现全面覆盖"}, "answer": "ABCD"}, # [cite: 15]
+    {"id": "08_m9", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 9, "question": "9.全过程人民民主是最管用的民主, 具体体现在（ ）。", "options": {"A":"保证在党的领导下有效治理国家，切实防止出现一盘散沙的现象", "B":"保证人民依法行使权利，切实防止出现选举时漫天许诺、选举后无人过问的现象", "C":"加强社会各种力量的合作协调，切实防止出现党争纷沓、相互倾轧的现象", "D":"巩固平等团结互助和谐的社会主义民族关系，切实防止出现民族隔阂、民族冲突的现象", "E":"发展基层民主，切实防止出现人民形式上有权、实际上无权的现象"}, "answer": "ABCDE"}, # [cite: 15]
+    {"id": "08_m10", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 10, "question": "10.我国的协商民主体系包括（  ）。", "options": {"A":"政党协商，人大协商", "B":"政府协商", "C":"人民团体协商", "D":"政协协商、", "E":"基层协商以及社会组织协商"}, "answer": "ABCDE"}, # [cite: 15, 16]
+    {"id": "08_m11", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 11, "question": "11.我国基层民主有多种多样的形式，如(   )。", "options": {"A":"以村民委员会为组织形态的农村村民自治", "B":"以社区居民委员会为组织形态的城市居民自治", "C":"以职工代表大会为组织依托的企事业单位职工自治", "D":"以上都对"}, "answer": "ABCD"}, # [cite: 16]
+    {"id": "08_m12", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 12, "question": "12.统一战线工作的本质要求是（    ）。", "options": {"A":"大团结大联合", "B":"解决的就是人心和力量问题", "C":"推进国家统一", "D":"实现中华民族伟大复兴"}, "answer": "AB"}, # [cite: 16]
+    {"id": "08_m13", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 13, "question": "13.铸牢中华民族共同体意识，就要（    ）。", "options": {"A":"要引导各族人民牢固树立休戚与共、荣辱与共、命运与共的共同体理念", "B":"要正确把握共同性和差异性的关系、中华民族共同体意识和各民族意识的关系、中华文化和各民族文化的关系", "C":"建设各民族共有精神家园，促进各民族共同繁荣共同发展", "D":"引导各族群众牢固树立正确的祖国观、民族观、文化观、历史观"}, "answer": "ABCD"}, # [cite: 16]
+    {"id": "08_m14", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 14, "question": "14.统一战线工作范围包括（    ）。", "options": {"A":"民主党派成员，无党派人士，党外知识分子", "B":"少数民族人士，宗教界人士", "C":"非公有制经济人士，新的社会阶层人士", "D":"出国和归国留学人员", "E":"香港同胞，澳门同胞，台湾同胞，华侨归侨及侨眷"}, "answer": "ABCDE"}, # [cite: 16] # Original answer was ABCDE without separating options.
+    {"id": "08_m15", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 15, "question": "15.全过程人民民主是（   ）的民主，是最广泛、最真实、最管用的社会主义民主。", "options": {"A":"全方面", "B":"全链条", "C":"全方位", "D":"全覆盖"}, "answer": "BCD"}, # [cite: 16]
+    {"id": "08_m16", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 16, "question": "16.全过程人民民主实现了（    ）。", "options": {"A":"过程民主和成果民主相统一", "B":"程序民主和实质民主相统一", "C":"直接民主和间接民主相统一", "D":"人民民主和国家意志相统一"}, "answer": "ABCD"}, # [cite: 16]
+    {"id": "08_m17", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 17, "question": "17. 在人民民主的共同旗帜下，中国共产党与各民主党派（   ）。", "options": {"A":"长期共存", "B":"互相监督", "C":"肝胆相照", "D":"荣辱与共"}, "answer": "ABCD"}, # [cite: 16]
+    {"id": "08_m18", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 18, "question": "18.巩固和发展爱国统一战线，应该着手做好以下工作（ ）。", "options": {"A":"坚持长期共存、互相监督、肝胆相照、荣辱与共的中国共产党领导的政治协商制度", "B":"深化民族团结进步教育", "C":"全面贯彻党的宗教工作基本方针", "D":"牢牢把握大团结大联合的主题，做好统战工作"}, "answer": "ABCD"}, # [cite: 16, 17]
+    {"id": "08_m19", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 19, "question": "19.走中国特色社会主义政治发展道路，必须坚持（ ）有机统一。", "options": {"A":"推进国家治理体系和治理能力现代化", "B":"巩固和发展最广泛的爱国统一战线", "C":"党的领导", "D":"人民当家作主 ，依法治国"}, "answer": "CD"}, # [cite: 17] # This combines C and D.
+    {"id": "08_m20", "type": "multiple", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 20, "question": "20.全过程人民民主是社会主义民主政治的本质属性，是(   )的民主。", "options": {"A":"最广泛", "B":"最真实", "C":"最管用", "D":"最典型"}, "answer": "ABC"}, # [cite: 17]
+    # Judgment (判断题) from 08.doc
+    {"id": "08_j1", "type": "judgment_as_single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 1, "question": "坚持走中国特色社会主义政治发展道路，全面发展全过程人民民主，社会主义民主政治制度化、规范化、程序化全面推进。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 17]
+    {"id": "08_j2", "type": "judgment_as_single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 2, "question": "人民民主是社会主义的生命，没有民主就没有社会主义。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 17]
+    {"id": "08_j3", "type": "judgment_as_single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 3, "question": "中国共产党领导的多党合作和政治协商制度、民族区域自治制度以及基层群众自治制度构成我国的根本政治制度。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 17]
+    {"id": "08_j4", "type": "judgment_as_single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 4, "question": "我国的各项国家制度都是围绕人民当家作主构建的，国家治理体系都是围绕实现人民当家作主运转的。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 17]
+    {"id": "08_j5", "type": "judgment_as_single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 5, "question": "民主就是指民主选举，不搞“一人一票”竞选就是“不民主”。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 17]
+    {"id": "08_j6", "type": "judgment_as_single", "source_doc": "08.doc", "doc_order": 8, "q_num_in_doc": 6, "question": "6.做统战工作要把握好固守圆心和扩大共识、潜绩和显绩、原则性和灵活性、团结和斗争的关系。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, # [cite: 17]
 
     # --- Document 09.doc (doc_order: 9) ---
     # Single Choice (单项选择题)
@@ -240,9 +549,9 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "13_m4", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 4, "question": "4.总体国家安全观强调（   ）。", "options": {"A":"做好国家安全工作的系统思维和方法，加强科学统筹", "B":"维护国家安全要贯穿党和国家工作各方面全过程", "C":"打总体战，形成汇聚党政军民学各战线各方面各层级的强大合力", "D":"全社会全政府全体系全手段应对重大国家安全风险挑战"}, "answer": "ABCD"}, # [cite: 13]
     {"id": "13_m5", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 5, "question": "5.总体国家安全观（  ）。", "options": {"A":"回答了如何解决好大国发展进程中面临的共性安全问题", "B":"回答了如何解决好中华民族伟大复兴关键时期面临的特殊安全问题", "C":"系统提出了一系列具有原创性、时代性的重要观点", "D":"为破解我国国家安全面临的难题、推进新时代国家安全工作提供了基本遵循"}, "answer": "ABCD"}, # [cite: 13]
     {"id": "13_m6", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 6, "question": "6.新时代国家安全得到全面加强,表现在（  ）。", "options": {"A":"党中央成立中央国家安全委员会", "B":"制定实施《中国共产党领导国家安全工作条例》", "C":"制定出台国家情报法、反恐怖主义法等一系列国家安全法律法规", "D":"制定实施《国家安全战略纲要》《国家安全战略（2021-2025年）》", "E":"国家安全体系和能力建设取得突破性进展"}, "answer": "ABCDE"}, # [cite: 13]
-    {"id": "13_m7", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 7, "question": "7.对发展和安全的理解，正确的观点是（  ）。", "options": {"A":"发展解决的是动力问题，是推动国家和民族康续绵延的根本支撑", "B":"安全解决的是保障问题，是确保国家和民族行稳致远的坚强柱石", "C":"发展具有基础性、根本性，是解决安全问题的总钥匙", "D":"没有国家安全,发展取得的成果也可能毁于一旦", "E":"发展和安全是一体之两翼、驱动之双轮，必须同步推进"}, "answer": "ABCDE"}, # [cite: 13]
+    {"id": "13_m7", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 7, "question": "7.对发展和安全的理解，正确的观点是（ ）。", "options": {"A":"发展解决的是动力问题，是推动国家和民族康续绵延的根本支撑", "B":"安全解决的是保障问题，是确保国家和民族行稳致远的坚强柱石", "C":"发展具有基础性、根本性，是解决安全问题的总钥匙", "D":"没有国家安全,发展取得的成果也可能毁于一旦", "E":"发展和安全是一体之两翼、驱动之双轮，必须同步推进"}, "answer": "ABCDE"}, # [cite: 13]
     {"id": "13_m8", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 8, "question": "8.对新安全格局和新发展格局关系的正确理解是（   ）。", "options": {"A":"新安全格局是新发展格局的重要前提和保障。", "B":"只有以新安全格局保障新发展格局，才能夯实我国经济发展的根基、增强发展的安全性稳定性", "C":"只有以新安全格局保障新发展格局，才能在各种可以预见和难以预见的风险挑战中增强我国的生存力、竞争力、发展力、持续力", "D":"以新安全格局保障新发展格局，必须统筹维护国家安全各类要素、各方资源、各种手段，主动塑造有利的外部安全环境"}, "answer": "ABCD"}, # [cite: 13]
-    {"id": "13_m9", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 9, "question": "9.政治安全涉及国家（   ）的稳固，是一个国家最根本的需求。", "options": {"A":"主权", "B":"政权", "C":"制度", "D":"意识形态"}, "answer": "ABCD"}, # [cite: 13, 14]
+    {"id": "13_m9", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 9, "question": "9.政治安全涉及国家（   ）的稳固，是一个国家最根本的需求。", "options": {"A":"主权", "B":"政权", "C":"制度", "D":"意识形态"}, "answer": "ABCD"}, # [cite: 13]
     {"id": "13_m10", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 10, "question": "10. 维护政治安全，要（    ）。", "options": {"A":"维护政权安全", "B":"维护制度安全", "C":"维护意识形态安全", "D":"维护中国共产党执政安全"}, "answer": "ABCD"}, # [cite: 14]
     {"id": "13_m11", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 11, "question": "11. 政治安全与人民安全、国家利益至上的关系是（   ）。", "options": {"A":"要把政治安全、人民安全、国家利益至上三者统一起来，确保实现党的长期执政、人民安居乐业、国家长治久安", "B":"政治安全是维护人民安全和国家利益的根本保证", "C":"人民安全居于中心地位，国家安全归根到底是保障人民利益", "D":"国家利益至上是实现政治安全和人民安全的要求和原则。"}, "answer": "ABCD"}, # [cite: 14]
     {"id": "13_m12", "type": "multiple", "source_doc": "13.doc", "doc_order": 13, "q_num_in_doc": 12, "question": "12.国土安全是立国之基，维护国土安全，要（  ）。", "options": {"A":"提升维护国土安全能力，加强边防、海防、空防建设", "B":"坚决反对一切分裂祖国的活动", "C":"深入打击恐怖主义、分裂主义、极端主义“三股势力”", "D":"坚决防范“藏独”“东突”，坚决粉碎任何“台独”分裂图谋", "E":"全力维护香港、澳门长期繁荣稳定"}, "answer": "ABCDE"}, # [cite: 14]
@@ -322,7 +631,7 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "15_m10", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 10, "question": "10.在新时代国家改革开放进程中,香港、澳门应该如何抓住发展机遇，更好融入国家发展大局。（ ）", "options": {"A":"积极主动助力国家全面开放", "B":"积极主动参与粤港澳大湾区建设", "C":"积极主动参与国家治理实践", "D":"积极主动促进国际人文交流"}, "answer": "ABCD"}, # [cite: 25]
     {"id": "15_m11", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 11, "question": "11.解决台湾问题、实现祖国完全统一，是（  ）。", "options": {"A":"党矢志不渝的历史任务", "B":"全体中华儿女的共同愿望", "C":"实现中华民族伟大复兴的必然要求", "D":"大势所趋、大义所在、民心所向"}, "answer": "ABCD"}, # [cite: 25]
     {"id": "15_m12", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 12, "question": "12.（  ）是我们解决台湾问题的最大底气。", "options": {"A":"中国特色社会主义事业取得的伟大成就", "B":"我国经济、科技、国防实力的持续增强", "C":"包括台湾人民在内的全国各族人民万众一心、同仇敌忾", "D":"国际社会支持"}, "answer": "ABC"}, # [cite: 25]
-    {"id": "15_m13", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 13, "question": "13.牢牢把握两岸关系主导权和主动权，要做到（  ）。", "options": {"A":"坚持“和平统一、一国两制”方针，探索“两制”台湾方案", "B":"坚定支持岛内爱国统一力量，坚定反“独”促统", "C":"促进两岸经济文化交流合作，深化两岸各领域融合发展", "D":"坚持以最大诚意、尽最大努力争取和平统一的前景，但决不承诺放弃使用武力"}, "answer": "ABCD"}, # [cite: 25]
+    {"id": "15_m13", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 13, "question": "13.牢牢把握两岸关系主导权和主动权，要做到（ ）。", "options": {"A":"坚持“和平统一、一国两制”方针，探索“两制”台湾方案", "B":"坚定支持岛内爱国统一力量，坚定反“独”促统", "C":"促进两岸经济文化交流合作，深化两岸各领域融合发展", "D":"坚持以最大诚意、尽最大努力争取和平统一的前景，但决不承诺放弃使用武力"}, "answer": "ABCD"}, # [cite: 25]
     {"id": "15_m14", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 14, "question": "14.全面贯彻新时代党解决台湾问题的总体方略，必须(   )。", "options": {"A":"坚持党中央对对台工作的集中统一领导", "B":"坚持在中华民族伟大复兴进程中推进祖国统一", "C":"坚持在祖国大陆发展进步基础上解决台湾问题", "D":"坚持“和平统一、一国两制”基本方针", "E":"坚持一个中国原则和“九二共识”"}, "answer": "ABCDE"}, # [cite: 25]
     {"id": "15_m15", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 15, "question": "15.祖国完全统一一定要实现，也一定能够实现，因为（  ）。", "options": {"A":"实现祖国完全统一是中华民族伟大复兴的必然要求,是不可阻挡的历史潮流", "B":"台湾前途在于国家统一，台湾同胞福祉系于民族复兴", "C":"国家统一是大势所趋、大义所在、民心所向,台湾问题因民族弱乱而产生，必将随着民族复兴而解决", "D":"“台独”是历史逆流，是绝路,我们绝不为各种形式的“台独”分裂活动留下任何空间"}, "answer": "ABCD"}, # [cite: 25]
     {"id": "15_m16", "type": "multiple", "source_doc": "15.doc", "doc_order": 15, "q_num_in_doc": 16, "question": "16.党的十八大以来，党中央全面准确贯彻“一国两制”方针，牢牢掌握（   ）赋予的中央对香港、澳门全面管治权。", "options": {"A":"宪法", "B":"基本法", "C":"民法", "D":"刑法"}, "answer": "AB"}, # [cite: 25, 26]
@@ -359,7 +668,7 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "16_m5", "type": "multiple", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 5, "question": "5.中国走和平发展道路的自信和自觉（  ）。", "options": {"A":"来源于中华文明的深厚渊源", "B":"来源于对现实中国发展目标条件的认知", "C":"来源于对世界发展大势的把握", "D":"来源于和平发展的大局"}, "answer": "ABC"}, # [cite: 30]
     {"id": "16_m6", "type": "multiple", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 6, "question": "6.中国特色大国外交建立在正确的（   ）基础之上。", "options": {"A":"历史观", "B":"大局观", "C":"角色观", "D":"国际形势"}, "answer": "ABC"}, # [cite: 30]
     {"id": "16_m7", "type": "multiple", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 7, "question": "7.中国特色大国外交要坚持的原则要求是（  ）。", "options": {"A":"坚持和加强党对对外工作的集中统一领导", "B":"坚持以中国特色社会主义为根本，增强战略自信", "C":"坚持以相互尊重、合作共赢为基础，走和平发展道路", "D":"坚持以公平正义为理念引领全球治理体系改革", "E":"坚持以国家核心利益为底线维护国家主权、安全、发展利益"}, "answer": "ABCDE"}, # [cite: 30]
-    {"id": "16_m8", "type": "multiple", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 8, "question": "8.中国特色大国外交的独特风范表现在（  ）。", "options": {"A":"坚持马克思主义立场观点方法,从中华优秀传统文化中汲取智慧", "B":"坚持爱国主义同国际主义相结合", "C":"倡导不同社会制度和发展道路相互包容", "D":"坚持诚信为本，始终恪守政治承诺", "E":"倡导不同国家、不同民族、不同文明互学互鉴"}, "answer": "ABCDE"}, # [cite: 30]
+    {"id": "16_m8", "type": "multiple", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 8, "question": "8.中国特色大国外交的独特风范表现在（ ）。", "options": {"A":"坚持马克思主义立场观点方法,从中华优秀传统文化中汲取智慧", "B":"坚持爱国主义同国际主义相结合", "C":"倡导不同社会制度和发展道路相互包容", "D":"坚持诚信为本，始终恪守政治承诺", "E":"倡导不同国家、不同民族、不同文明互学互鉴"}, "answer": "ABCDE"}, # [cite: 30]
     {"id": "16_m9", "type": "multiple", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 9, "question": "9.我国走和平发展道路，是（ ）。", "options": {"A":"对国际社会关注中国发展走向的回应", "B":"中国人民对实现自身发展目标的自信和自觉", "C":"由中国共产党性质宗旨和我国社会主义制度决定的", "D":"基于中国历史文化传统作出的必然选择", "E":"符合历史潮流、顺应世界大势的正确选择"}, "answer": "ABCDE"}, # [cite: 30]
     {"id": "16_m10", "type": "multiple", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 10, "question": "10.我国独立自主的和平外交政策的内容包括（  ）。", "options": {"A":"中国始终根据事情本身的是非曲直决定自己的立场和政策", "B":"中国尊重各国主权和领土完整，尊重各国人民选择的发展道路和社会制度", "C":"坚决反对一切形式的範权主义和强权政治", "D":"反对冷战思维，反对干涉别国内政，反对搞双重标准", "E":"奉行防御性的国防政策，中国永远不称霸、永远不搞扩张"}, "answer": "ABCDE"}, # [cite: 30]
     {"id": "16_m11", "type": "multiple", "source_doc": "16.doc", "doc_order": 16, "q_num_in_doc": 11, "question": "11.新型国际关系的内容是（   ）。", "options": {"A":"相互尊重", "B":"公平正义", "C":"合作共赢", "D":"和平共处"}, "answer": "ABC"}, # [cite: 30, 31]
@@ -405,9 +714,8 @@ ALL_QUESTION_DATA_PYTHON = [
     {"id": "17_m13", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 13, "question": "13.我们要落实新时代党的建设总要求，健全全面从严治党体系，全面推进党的（   ）", "options": {"A":"自我净化", "B":"自我完善", "C":"自我革新", "D":"自我提高"}, "answer": "ABCD"}, # [cite: 37]
     {"id": "17_m14", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 14, "question": "14.坚决打赢反腐败斗争攻坚战持久战，必须清醒认识到，腐败和反腐败较量还在激烈进行，必须（  ）。", "options": {"A":"坚持以零容忍态度反腐惩恶不动摇", "B":"要坚决惩治不收敛不收手、胆大妄为者", "C":"坚决查处政治问题和经济问题交织的腐败", "D":"坚决防止领导干部成为利益集团和权势团体的代言人、代理人", "E":"坚决防止政商勾连、资本向政治领域渗透等破坏政治生态和经济发展环境的腐败"}, "answer": "ABCDE"}, # [cite: 37]
     {"id": "17_m15", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 15, "question": "15.党的十八大以来，以习近平同志为核心的党中央坚持以雷霆之势惩治腐败，走出一条依靠制度优势、法治优势反腐败之路，具体表现在（  ）。", "options": {"A":"构建起党全面领导的反腐败工作格局", "B":"“打虎”“拍蝇”“猎狐”多管齐下", "C":"把权力关进制度的笼子里", "D":"坚持不敢腐、不能腐、不想腐一体推进", "E":"依靠理想信念教育作为反腐败的根本举措"}, "answer": "ABCD"}, # [cite: 37]
-    # Document 17, multiple choice questions 16 and 17 are missing options in the provided text.
-    # Assuming question 16: "中国共产党是世界上最大的马克思主义执政党，解决大党独有难题，要（ ）。"
-    # Assuming question 17: "之所以要把党的政治建设摆在首位，是因为（   ）。"
+    {"id": "17_m16", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 16, "question": "16.对中国共产党是世界上最大的马克思主义执政党，解决大党独有难题，要（ ）。", "options": {"A":"加强党的政治建设", "B":"深化理论武装", "C":"推动高质量发展", "D":"维护党的团结和集中统一"}, "answer": "ABCD"}, # [cite: 37]
+    {"id": "17_m17", "type": "multiple", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 17, "question": "17. 之所以要把党的政治建设摆在首位，是因为（   ）。", "options": {"A":"党的政治建设是根本性建设，决定党的建设的方向和效果", "B":"只有党的政治建设抓好了，党的建设才能夯基固本", "C":"坚持和加强党的全面领导，确保党始终成为坚强领导核心", "D":"增强“四个意识”、坚定“四个自信”、做到“两个维护”"}, "answer": "ABCD"}, # [cite: 37]
     # Judgment (判断题) from 17.doc
     {"id": "17_j1", "type": "judgment_as_single", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 1, "question": "1.党的自我革命是跳出历史周期率的第一个答案。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 37]
     {"id": "17_j2", "type": "judgment_as_single", "source_doc": "17.doc", "doc_order": 17, "q_num_in_doc": 2, "question": "2. 政治建设是党永葆生机活力、走好新的赶考之路的必由之路。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, # [cite: 37]
@@ -565,15 +873,35 @@ def wrong_answers_page():
     
     try:
         user_id = session['user_id']
-        wrong_answers = db_manager.get_wrong_answers(user_id)
+        raw_wrong_answers = db_manager.get_wrong_answers(user_id)
+        processed_wrong_answers = []
+        for ans_row in raw_wrong_answers:
+            # Convert sqlite3.Row to a mutable dict to modify it
+            processed_ans = dict(ans_row) 
+            if 'last_wrong_at' in processed_ans and isinstance(processed_ans['last_wrong_at'], str):
+                original_date_str = processed_ans['last_wrong_at']
+                try:
+                    # Try parsing with fractional seconds first, then without
+                    try:
+                        processed_ans['last_wrong_at'] = datetime.strptime(original_date_str, '%Y-%m-%d %H:%M:%S.%f')
+                    except ValueError:
+                        processed_ans['last_wrong_at'] = datetime.strptime(original_date_str, '%Y-%m-%d %H:%M:%S')
+                except ValueError as e_parse:
+                    logger.warning(f"Could not parse date string '{original_date_str}' for question_id {processed_ans.get('question_id')}: {e_parse}. Setting to None.")
+                    processed_ans['last_wrong_at'] = None # Ensure it's None if parsing fails
+            processed_wrong_answers.append(processed_ans)
+        
         stats = db_manager.get_wrong_answer_stats(user_id)
         
+        # Make sure to pass the processed list to the template
         return render_template('wrong_answers.html', 
                              username=session.get('username'),
-                             wrong_answers=wrong_answers,
+                             wrong_answers=processed_wrong_answers, 
                              stats=stats)
     except Exception as e:
         logger.error(f"获取错题本失败: {e}")
+        import traceback
+        logger.error(traceback.format_exc()) # Log full traceback for better debugging
         return redirect(url_for('quiz_page_actual'))
 
 @app.route('/retry_wrong_questions')
@@ -845,6 +1173,16 @@ def record_wrong_answer():
         data = request.get_json()
         user_id = session['user_id']
         
+        question_options_data = data['question_options']
+        if isinstance(question_options_data, str):
+            try:
+                question_options_parsed = json.loads(question_options_data)
+            except json.JSONDecodeError:
+                logger.error(f"Failed to parse question_options JSON: {question_options_data}")
+                return jsonify({'message': '选项数据格式错误'}), 400
+        else:
+            question_options_parsed = question_options_data
+
         db_manager.add_wrong_answer(
             user_id=user_id,
             question_id=data['question_id'],
@@ -852,12 +1190,15 @@ def record_wrong_answer():
             question_type=data['question_type'],
             correct_answer=data['correct_answer'],
             user_answer=data['user_answer'],
-            question_options=data['question_options'],
-            source_doc=data['source_doc']
+            question_options=question_options_parsed, # Pass the parsed dictionary
+            source_doc=data.get('source_doc', '') # Use .get for optional fields
         )
         
         return jsonify({'message': '错题记录成功'}), 200
         
+    except KeyError as e:
+        logger.error(f"记录错题失败: 缺少字段 {e}")
+        return jsonify({'message': f'记录错题失败，缺少字段: {e}'}), 400
     except Exception as e:
         logger.error(f"记录错题失败: {e}")
         return jsonify({'message': '记录错题失败'}), 500

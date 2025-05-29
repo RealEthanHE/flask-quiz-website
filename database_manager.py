@@ -8,6 +8,8 @@ import psycopg2
 import psycopg2.extras
 from urllib.parse import urlparse
 import logging
+from datetime import datetime
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +196,6 @@ class DatabaseManager:
             self.execute_query(query, params)
         else:
             # 添加新错题
-            import json
             options_str = json.dumps(question_options) if question_options else None
             
             if self.is_postgres:
@@ -210,22 +211,68 @@ class DatabaseManager:
                                      correct_answer, user_answer, options_str, source_doc))
     
     def get_wrong_answers(self, user_id, limit=None):
-        """获取用户的错题列表"""
+        """获取用户的所有错题记录，按最后错误时间降序排列"""
         if self.is_postgres:
-            query = '''SELECT * FROM wrong_answers 
-                       WHERE user_id = %s AND is_corrected = %s 
+            query = '''SELECT id, user_id, question_id, question_text, question_type, 
+                              correct_answer, user_answer, question_options, source_doc, 
+                              wrong_count, last_wrong_at, is_corrected 
+                       FROM wrong_answers 
+                       WHERE user_id = %s 
                        ORDER BY last_wrong_at DESC'''
-            params = (user_id, False)
-        else:
-            query = '''SELECT * FROM wrong_answers 
-                       WHERE user_id = ? AND is_corrected = ? 
+            params = (user_id,)
+        else: # SQLite
+            query = '''SELECT id, user_id, question_id, question_text, question_type, 
+                              correct_answer, user_answer, question_options, source_doc, 
+                              wrong_count, last_wrong_at, is_corrected 
+                       FROM wrong_answers 
+                       WHERE user_id = ? 
                        ORDER BY last_wrong_at DESC'''
-            params = (user_id, 0)
+            params = (user_id,)
         
         if limit:
-            query += f" LIMIT {limit}"
+            query += f" LIMIT {int(limit)}" # Ensure limit is an integer
         
-        return self.execute_query(query, params, fetch_all=True)
+        rows = self.execute_query(query, params, fetch_all=True)
+
+        if not rows:
+            return []
+
+        processed_rows = []
+        for row_obj in rows:
+            # Convert sqlite3.Row to a mutable dictionary
+            # For PostgreSQL, if execute_query already returns dicts, this is fine.
+            # If it returns tuples, this conversion would need column names.
+            # Assuming row_obj is dict-like (e.g., sqlite3.Row or dict from psycopg2)
+            row_dict = dict(row_obj) 
+
+            # Convert last_wrong_at string to datetime object
+            if 'last_wrong_at' in row_dict and isinstance(row_dict['last_wrong_at'], str):
+                try:
+                    row_dict['last_wrong_at'] = datetime.strptime(row_dict['last_wrong_at'], '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    try:
+                        # Attempt to parse with milliseconds if the first format fails
+                        row_dict['last_wrong_at'] = datetime.strptime(row_dict['last_wrong_at'], '%Y-%m-%d %H:%M:%S.%f')
+                    except ValueError:
+                        # If parsing fails, set to None or log an error
+                        logger.warning(f"Could not parse last_wrong_at timestamp: {row_dict['last_wrong_at']}")
+                        row_dict['last_wrong_at'] = None 
+            
+            # Ensure is_corrected is boolean (for SQLite, it's 0 or 1)
+            if not self.is_postgres and 'is_corrected' in row_dict:
+                row_dict['is_corrected'] = bool(row_dict['is_corrected'])
+            
+            # Ensure question_options is a dict (it's stored as a JSON string)
+            if 'question_options' in row_dict and isinstance(row_dict['question_options'], str):
+                try:
+                    row_dict['question_options'] = json.loads(row_dict['question_options'])
+                except json.JSONDecodeError:
+                    logger.warning(f"Could not parse question_options JSON: {row_dict['question_options']}")
+                    row_dict['question_options'] = {} # Default to empty dict if parsing fails
+            
+            processed_rows.append(row_dict)
+        
+        return processed_rows
     
     def mark_question_corrected(self, user_id, question_id):
         """标记错题已纠正"""
