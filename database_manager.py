@@ -47,7 +47,7 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         try:
-            if self.is_postgres:                # PostgreSQL语法
+            if self.is_postgres:  # PostgreSQL语法
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS users (
                         id SERIAL PRIMARY KEY,
@@ -158,7 +158,7 @@ class DatabaseManager:
             
             conn.commit()
             return result
-              except Exception as e:
+        except Exception as e:
             conn.rollback()
             logger.error(f"数据库查询失败: {e}")
             raise
@@ -202,11 +202,10 @@ class DatabaseManager:
                           (user_id, question_id, question_text, question_type, correct_answer, 
                            user_answer, question_options, source_doc) 
                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'''
-            else:
-                query = '''INSERT INTO wrong_answers 
+            else:                query = '''INSERT INTO wrong_answers 
                           (user_id, question_id, question_text, question_type, correct_answer, 
                            user_answer, question_options, source_doc) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''            
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
             self.execute_query(query, (user_id, question_id, question_text, question_type, 
                                      correct_answer, user_answer, options_str, source_doc))
     

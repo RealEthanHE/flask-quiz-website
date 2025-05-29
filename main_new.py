@@ -862,4 +862,18 @@ def record_wrong_answer():
         logger.error(f"记录错题失败: {e}")
         return jsonify({'message': '记录错题失败'}), 500
 
-# ...existing code...
+# Main execution block to start the Flask development server
+if __name__ == '__main__':
+    try:
+        # Initialize the database
+        logger.info("Initializing database...")
+        db_manager.init_database()
+        logger.info("Database initialized successfully")
+        
+        # Start the Flask development server
+        logger.info(f"Starting Flask application on port {PORT}...")
+        app.run(host='0.0.0.0', port=PORT, debug=True)
+        
+    except Exception as e:
+        logger.error(f"Failed to start application: {e}")
+        raise

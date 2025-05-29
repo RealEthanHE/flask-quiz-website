@@ -278,215 +278,24 @@
 
                 <div style="text-align: center; margin: 20px 0;">
                     <a href="{{ url_for('chapter_practice', chapter=selected_chapter) }}" class="btn btn-outline">⬅️ 返回题型选择</a>
-                </div>
-            </div>
-            {% endif %}
-        </div>
+                </div>            </div>
+            {% endif %}    </div>
     </div>
-
+    
+    <!-- External JavaScript for chapter practice -->
+    <script src="{{ url_for('static', filename='chapter_practice.js') }}"></script>
+    
+    <!-- 
+      The following script initializes the chapter practice with template data.
+      It calls the initChapterPractice function from the external JS file.
+    -->
     <script>
-        // 全局变量
-        const questions = {{ questions|tojson if questions else []|tojson }};
-        let currentQuestionIndex = 0;
-        let selectedAnswer = null;
-        let hasAnswered = false;
-
-        // 初始化
+        // Initialize with template data
         document.addEventListener('DOMContentLoaded', function() {
-            if (questions && questions.length > 0) {
-                displayQuestion();
-            }
-            setupEventListeners();
+            // The variable below will be populated by the Jinja2 template engine
+            var questionsData = /*{{ questions | default([]) | tojson | safe }}*/[];
+            initChapterPractice(questionsData);
         });
-
-        function setupEventListeners() {
-            const submitBtn = document.getElementById('submitBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const logoutBtn = document.getElementById('logoutBtnGlobal');
-
-            if (submitBtn) {
-                submitBtn.addEventListener('click', submitAnswer);
-            }
-
-            if (nextBtn) {
-                nextBtn.addEventListener('click', nextQuestion);
-            }
-
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', logout);
-            }
-        }
-
-        function displayQuestion() {
-            if (currentQuestionIndex >= questions.length) {
-                showCompletion();
-                return;
-            }
-
-            const question = questions[currentQuestionIndex];
-            selectedAnswer = null;
-            hasAnswered = false;
-
-            // 更新界面
-            document.getElementById('questionNumber').textContent = currentQuestionIndex + 1;
-            document.getElementById('currentQuestionNum').textContent = currentQuestionIndex + 1;
-            document.getElementById('questionText').textContent = question.question;
-
-            // 显示选项
-            const optionsContainer = document.getElementById('optionsContainer');
-            optionsContainer.innerHTML = '';
-
-            const sortedKeys = Object.keys(question.options).sort();
-            
-            sortedKeys.forEach(key => {
-                const option = document.createElement('div');
-                option.className = 'option-item';
-                option.setAttribute('data-value', key);
-                option.innerHTML = `<strong>${key}.</strong> ${question.options[key]}`;
-                
-                option.addEventListener('click', function() {
-                    if (!hasAnswered) {
-                        selectOption(key);
-                    }
-                });
-
-                optionsContainer.appendChild(option);
-            });
-
-            // 重置反馈区域
-            document.getElementById('feedbackContainer').innerHTML = '';
-            document.getElementById('submitBtn').style.display = 'inline-block';
-            document.getElementById('nextBtn').style.display = 'none';
-        }
-
-        function selectOption(value) {
-            if (hasAnswered) return;
-
-            // 移除之前选择的样式
-            document.querySelectorAll('.option-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-
-            // 添加选中样式
-            const selectedOption = document.querySelector(`[data-value="${value}"]`);
-            if (selectedOption) {
-                selectedOption.classList.add('selected');
-            }
-
-            selectedAnswer = value;
-        }
-
-        function submitAnswer() {
-            if (!selectedAnswer) {
-                alert('请选择一个答案！');
-                return;
-            }
-
-            if (hasAnswered) return;
-
-            hasAnswered = true;
-            const question = questions[currentQuestionIndex];
-            const isCorrect = selectedAnswer === question.answer;
-
-            // 显示正确答案
-            document.querySelectorAll('.option-item').forEach(item => {
-                const value = item.getAttribute('data-value');
-                if (value === question.answer) {
-                    item.classList.add('correct');
-                } else if (value === selectedAnswer && !isCorrect) {
-                    item.classList.add('incorrect');
-                }
-            });
-
-            // 显示反馈
-            const feedbackContainer = document.getElementById('feedbackContainer');
-            const feedback = document.createElement('div');
-            feedback.className = `feedback-card ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
-            
-            if (isCorrect) {
-                feedback.innerHTML = '✅ 回答正确！';
-            } else {
-                feedback.innerHTML = `❌ 回答错误！正确答案是：${question.answer}`;
-                // 记录错题
-                recordWrongAnswer(question, selectedAnswer);
-            }
-
-            feedbackContainer.appendChild(feedback);
-
-            // 更新按钮
-            document.getElementById('submitBtn').style.display = 'none';
-            document.getElementById('nextBtn').style.display = 'inline-block';
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            displayQuestion();
-        }
-
-        function showCompletion() {
-            const container = document.getElementById('questionContainer');
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px;">
-                    <h2>🎉 恭喜完成练习！</h2>
-                    <p>您已完成本章节所有题目练习</p>
-                    <div style="margin-top: 30px;">
-                        <a href="{{ url_for('chapter_practice', chapter=selected_chapter) }}" class="btn-primary">选择其他题型</a>
-                        <a href="{{ url_for('chapter_practice') }}" class="btn-secondary">返回章节选择</a>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('submitBtn').style.display = 'none';
-            document.getElementById('nextBtn').style.display = 'none';
-        }
-
-        async function recordWrongAnswer(question, userAnswer) {
-            try {
-                const response = await fetch('/api/record_wrong_answer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        question_id: question.id,
-                        question_text: question.question,
-                        question_type: question.type,
-                        correct_answer: question.answer,
-                        user_answer: userAnswer,
-                        question_options: question.options,
-                        source_doc: question.source_doc
-                    })
-                });
-
-                const result = await response.json();
-                if (!response.ok) {
-                    console.error('记录错题失败:', result.message);
-                }
-            } catch (error) {
-                console.error('记录错题时出错:', error);
-            }
-        }
-
-        async function logout() {
-            try {
-                const response = await fetch('/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const result = await response.json();
-                if (response.ok && result.redirect_url) {
-                    window.location.href = result.redirect_url;
-                } else {
-                    alert(result.message || '登出失败');
-                }
-            } catch (error) {
-                console.error('登出时出错:', error);
-                alert('登出时出现错误');
-            }
-        }
     </script>
 </body>
 </html>
